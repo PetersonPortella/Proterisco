@@ -236,3 +236,43 @@ section h2 {
     font-size: 28px;
 }
 
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 450px);
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.dashboard-card {
+    background: #111827;
+    border: 1px solid #991b1b;
+    border-radius: 14px;
+    padding: 20px;
+    width: 450px;
+    height: 400px;
+}
+
+.dashboard-card h3 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.dashboard-card iframe {
+    width: 400px;
+    height: 250px;
+    border: none;
+    border-radius: 10px;
+    background: white;
+}
+
+.dashboard-card a {
+    display: block;
+    margin-top: 15px;
+    padding: 12px;
+    text-align: center;
+    background: #991b1b;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+}
