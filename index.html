@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setor de Investigação</title>
+    <link rel="stylesheet" href="style.css">
+    </head>
+<body>
+
+    <header>
+        <div>
+        <h1>Setor de Investigação</h1>
+        <p>Portal de controle e documentos internos</p>
+        </div>
+
+        <img src="imagem/prote-risco.png" alt="Logo da empresa" class="logo">
+    </header>
+
+    <nav>
+    <button onclick="mostrarSecao('sigo-claro')">Sigo - Claro</button>
+    <button onclick="mostrarSecao('relatorios')">Relatórios</button>
+    <button onclick="mostrarSecao('apresentacoes')">PowerPoints</button>
+    <button onclick="mostrarSecao('dashboards')">Dashboards</button>
+    <button onclick="mostrarSecao('casos')">Casos</button>
+</nav>
+
+<main>
+
+    <section id="sigo-claro" class="secao ativa">
+        <h2>Sigo - Claro</h2>
+
+        <div class="linha linha2">
+
+            <a href="https://protecaes-my.sharepoint.com/:x:/g/personal/op14_proterisco_com_br/IQDXAbvhF34_S6k7L2V1EVBKAdQAO7fRUu6ORbYK0GRhumY?email=angela%40proterisco.com.br&e=8WjlGw" target="_blank" class="card">
+                <h3>2026</h3>
+                <p>Planilha SIGO COMPLETA</p>
+            </a>
+
+            <a href="https://protecaes-my.sharepoint.com/:x:/g/personal/op14_proterisco_com_br/IQBTVZs76_uETJoXaalY4Uj7AUI4QZiZCxh8vhnrr7pQ2sc?email=angela%40proterisco.com.br&e=O1eJIO" target="_blank" class="card">
+                <h3>2025</h3>
+                <p>Planilha SIGO COMPLETA</p>
+            </a>
+
+        </div>
+
+        <div class="upload-box">
+        <label for="inputExcel">Selecionar planilha Excel</label>
+        <input type="file" id="inputExcel" accept=".xlsx, .xls">
+        </div>
+
+        <div class="graficos-grid">
+        <div class="grafico-card">
+            <h3>1. Baterias por Estado</h3>
+            <canvas id="grafico1"></canvas>
+        </div>
+
+    <div class="grafico-card">
+        <h3>2. Ocorrências por Estado</h3>
+        <canvas id="grafico2"></canvas>
+    </div>
+
+    <div class="grafico-card grafico-pizza">
+        <h3>3. Grupo de Ocorrência</h3>
+        <canvas id="grafico3"></canvas>
+    </div>
+
+    <div class="grafico-card">
+        <h3>4. Infográficos</h3>
+
+        <div class="kpis">
+            <div class="kpi">
+                <span>Total IDs</span>
+                <strong id="kpiIds">0</strong>
+            </div>
+
+            <div class="kpi">
+                <span>Total Baterias</span>
+                <strong id="kpiBaterias">0</strong>
+            </div>
+
+            <div class="kpi">
+                <span>Valor Total</span>
+                <strong id="kpiValor">R$ 0,00</strong>
+            </div>
+        </div>
+    </div>
+</div>
+    </section>
+
+    <section id="relatorios" class="secao">
+        <h2>Relatórios</h2>
+        <p>Área destinada aos relatórios do setor.</p>
+    </section>
+
+    <section id="apresentacoes" class="secao">
+        <h2>PowerPoints</h2>
+        <p>Área destinada às apresentações.</p>
+    </section>
+
+    <section id="dashboards" class="secao">
+        <h2>Dashboards</h2>
+        <p>Área para links dos relatórios do Power BI.</p>
+        
+    </section>
+
+    <section id="casos" class="secao">
+        <h2>Casos</h2>
+        <p>Área destinada aos casos do setor.</p>
+    </section>
+
+
+</main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dados_sigo.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
