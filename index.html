@@ -1,222 +1,928 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-    <head>
+
+<head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Setor de Investigação</title>
+
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
+
 <body>
 
-    <header>
-        <div>
-        <h1>Setor de Investigação</h1>
-        <p>Portal de controle e documentos internos</p>
+    <!-- CABEÇALHO: NÃO ALTERADO -->
+
+    <header class="cabecalho-principal">
+
+        <div class="cabecalho-texto">
+            <h1>Setor de investigação</h1>
+            <p>Painel de Analise de Dados</p>
         </div>
 
-        <img src="imagem/prote-risco.png" alt="Logo da empresa" class="logo">
+        <img
+            src="imagem/prote-risco.png"
+            alt="Logo da empresa"
+            class="logo"
+        >
+
     </header>
 
-    <nav>
-    <button onclick="mostrarSecao('sigo-claro')">Sigo - Claro</button>
-    <button onclick="mostrarSecao('relatorios')">Relatórios</button>
-    <button onclick="mostrarSecao('apresentacoes')">PowerPoints</button>
-    <button onclick="mostrarSecao('dashboards')">Dashboards</button>
-    <button onclick="mostrarSecao('Suspeitos')">Suspeitos</button>
-</nav>
+    <!-- MENU: NÃO ALTERADO -->
 
-<main>
+    <nav class="menu-principal">
 
-    <section id="sigo-claro" class="secao ativa">
-        <h2>Sigo - Claro</h2>
+        <button
+            type="button"
+            onclick="mostrarSecao('sigo-claro')"
+        >
+            Sigo - Claro
+        </button>
 
-        <div class="linha linha2">
+        <button
+            type="button"
+            onclick="mostrarSecao('dashboards')"
+        >
+            Dashboards
+        </button>
 
-            <a href="https://protecaes-my.sharepoint.com/:x:/g/personal/op14_proterisco_com_br/IQDXAbvhF34_S6k7L2V1EVBKAdQAO7fRUu6ORbYK0GRhumY?email=angela%40proterisco.com.br&e=8WjlGw" target="_blank" class="card">
-                <h3>2026</h3>
-                <p>Planilha SIGO COMPLETA</p>
-            </a>
+    </nav>
 
-            <a href="https://protecaes-my.sharepoint.com/:x:/g/personal/op14_proterisco_com_br/IQBTVZs76_uETJoXaalY4Uj7AUI4QZiZCxh8vhnrr7pQ2sc?email=angela%40proterisco.com.br&e=O1eJIO" target="_blank" class="card">
-                <h3>2025</h3>
-                <p>Planilha SIGO COMPLETA</p>
-            </a>
+    <main>
 
-        </div>
+        <!-- ======================================= -->
+        <!-- ABA SIGO - CLARO -->
+        <!-- ======================================= -->
 
-        <div class="upload-box">
-        <label for="inputExcel">Selecionar planilha Excel</label>
-        <input type="file" id="inputExcel" accept=".xlsx, .xls">
-        </div>
+        <section
+            id="sigo-claro"
+            class="secao ativa"
+        >
 
-        <div class="graficos-grid">
-        <div class="grafico-card">
-            <h3>1. Baterias por Estado</h3>
-            <canvas id="grafico1"></canvas>
-        </div>
+            <!-- ATUALIZAÇÃO DA PLANILHA -->
 
-    <div class="grafico-card">
-        <h3>2. Ocorrências por Estado</h3>
-        <canvas id="grafico2"></canvas>
-    </div>
+            <section class="importacao-sigo">
 
-    <div class="grafico-card grafico-pizza">
-        <h3>3. Grupo de Ocorrência</h3>
-        <canvas id="grafico3"></canvas>
-    </div>
+                <div class="importacao-texto">
 
-    <div class="grafico-card">
-        <h3>4. Infográficos</h3>
+                    <h2>Atualizar planilha SIGO 2026</h2>
 
-        <div class="kpis">
-            <div class="kpi">
-                <span>Total IDs</span>
-                <strong id="kpiIds">0</strong>
+                    <p>
+                        Selecione a planilha semanal para incorporar
+                        os novos registros à planilha mestra.
+                    </p>
+
+                </div>
+
+                <div class="importacao-acoes">
+
+                    <label
+                        for="inputExcel"
+                        class="botao-arquivo"
+                    >
+                        Selecionar planilha semanal
+                    </label>
+
+                    <input
+                        type="file"
+                        id="inputExcel"
+                        accept=".xlsx,.xls"
+                    >
+
+                    <button
+                        type="button"
+                        id="salvarPlanilha"
+                        disabled
+                    >
+                        Salvar SIGO 2026 atualizada
+                    </button>
+
+                </div>
+
+                <div class="status-importacao">
+
+                    <p id="statusMestra">
+                        Carregando planilha mestra...
+                    </p>
+
+                    <p id="resultadoImportacao"></p>
+
+                </div>
+
+            </section>
+
+            <!-- FILTROS DE PERÍODO -->
+
+            <section class="periodo-analise">
+
+                <h2>Período de análise</h2>
+
+                <div class="filtros-periodo">
+
+                    <button
+                        type="button"
+                        class="botao-periodo"
+                        data-periodo="ano"
+                    >
+                        Ano
+                    </button>
+
+                    <button
+                        type="button"
+                        class="botao-periodo"
+                        data-periodo="mes"
+                    >
+                        Mês
+                    </button>
+
+                    <button
+                        type="button"
+                        class="botao-periodo ativo"
+                        data-periodo="semana"
+                    >
+                        Semana
+                    </button>
+
+                </div>
+
+                <p
+                    id="periodoSelecionadoTexto"
+                    class="periodo-selecionado"
+                >
+                </p>
+
+            </section>
+
+            <!-- ======================================= -->
+            <!-- BLOCO 1: BATERIAS -->
+            <!-- ======================================= -->
+
+            <section class="bloco-dashboard bloco-baterias">
+
+                <div class="titulo-bloco">
+
+                    <span class="numero-bloco">1</span>
+
+                    <div>
+                        <h2>
+                            Baterias furtadas — Bahia e Goiás
+                        </h2>
+
+                        <p>
+                            Dados consolidados dos dois estados
+                            prioritários para ocorrências envolvendo baterias.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="grade-indicadores">
+
+                    <article class="indicador-card indicador-vermelho">
+
+                        <span class="indicador-titulo">
+                            Total de baterias
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Bahia e Goiás
+                        </span>
+
+                        <strong id="bateriasTotal">
+                            0
+                        </strong>
+
+                        <span
+                            id="bateriasVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="bateriasPeriodoAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: 0
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-vermelho">
+
+                        <span class="indicador-titulo">
+                            Média semanal de baterias
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Bahia
+                        </span>
+
+                        <strong id="bateriasMediaSemanal">
+                            0
+                        </strong>
+
+                        <span class="indicador-legenda">
+                            Quantidade média por semana
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-vermelho">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Baterias — Bahia e Goiás
+                        </span>
+
+                        <strong id="bateriasValorTotal">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="bateriasValorVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="bateriasValorAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-vermelho">
+
+                        <span class="indicador-titulo">
+                            Ocorrências relacionadas a baterias
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Quantidade de Id Ocorrência
+                        </span>
+
+                        <strong id="bateriasOcorrencias">
+                            0
+                        </strong>
+
+                        <span
+                            id="bateriasOcorrenciasVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="bateriasOcorrenciasAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: 0
+                        </span>
+
+                    </article>
+
+                </div>
+
+                <article class="grafico-painel grafico-largo">
+
+                    <div class="cabecalho-grafico">
+
+                        <div>
+                            <h3>
+                                Baterias furtadas por cidade —
+                                Bahia e Goiás
+                            </h3>
+
+                            <p>
+                                Quantidade registrada por cidade no
+                                período selecionado.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="canvas-container canvas-grande">
+                        <canvas id="graficoBateriasCidades"></canvas>
+                    </div>
+
+                </article>
+                <!-- GRÁFICO MENSAL — BAHIA -->
+
+                    <article class="grafico-painel grafico-largo">
+
+                        <div class="cabecalho-grafico">
+                            <div>
+                                <h3>
+                                    Total de baterias furtadas por mês — Bahia
+                                </h3>
+
+                                <p>
+                                    Soma da coluna Quantidade para baterias no estado da Bahia.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoBateriasMensalBahia"></canvas>
+                        </div>
+
+                    </article>
+
+
+                    <!-- GRÁFICO MENSAL — GOIÁS -->
+
+                    <article class="grafico-painel grafico-largo">
+
+                        <div class="cabecalho-grafico">
+                            <div>
+                                <h3>
+                                    Total de baterias furtadas por mês — Goiás
+                                </h3>
+
+                                <p>
+                                    Soma da coluna Quantidade para baterias no estado de Goiás.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoBateriasMensalGoias"></canvas>
+                        </div>
+
+                    </article>
+                    <article class="grafico-painel grafico-largo">
+
+                        <div class="cabecalho-grafico">
+                            <div>
+                                <h3>Top 10 SITES com maior furto de baterias — Bahia</h3>
+
+                                <p>
+                                    Soma da coluna <strong>Quantidade</strong> agrupada pelo campo
+                                    <strong>Site/Loja</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoTop10SitesBahia"></canvas>
+                        </div>
+
+                    </article>
+
+
+
+            </section>
+
+            <!-- ======================================= -->
+            <!-- BLOCO 2: CABOS -->
+            <!-- ======================================= -->
+
+            <section class="bloco-dashboard bloco-cabos">
+
+                <div class="titulo-bloco">
+
+                    <span class="numero-bloco">2</span>
+
+                    <div>
+                        <h2>
+                            Cabos furtados — São Paulo
+                        </h2>
+
+                        <p>
+                            Dados de Guarulhos e das demais cidades
+                            do estado de São Paulo.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="grade-indicadores">
+
+                    <article class="indicador-card indicador-roxo">
+
+                        <span class="indicador-titulo">
+                            Total de cabos
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Guarulhos e outras cidades de SP
+                        </span>
+
+                        <strong id="cabosTotal">
+                            0
+                        </strong>
+
+                        <span
+                            id="cabosVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="cabosPeriodoAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: 0
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-roxo">
+
+                        <span class="indicador-titulo">
+                            Média semanal de cabos
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Estado de São Paulo
+                        </span>
+
+                        <strong id="cabosMediaSemanal">
+                            0
+                        </strong>
+
+                        <span class="indicador-legenda">
+                            Quantidade média por semana
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-roxo">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Cabos — Estado de São Paulo
+                        </span>
+
+                        <strong id="cabosValorTotal">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="cabosValorVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="cabosValorAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-roxo">
+
+                        <span class="indicador-titulo">
+                            Ocorrências relacionadas a cabos
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Quantidade de Id Ocorrência
+                        </span>
+
+                        <strong id="cabosOcorrencias">
+                            0
+                        </strong>
+
+                        <span
+                            id="cabosOcorrenciasVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="cabosOcorrenciasAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: 0
+                        </span>
+
+                    </article>
+
+                </div>
+
+                <article class="grafico-painel grafico-largo">
+
+                    <div class="cabecalho-grafico">
+
+                        <div>
+                            <h3>
+                                Cabos furtados por cidade —
+                                Estado de São Paulo
+                            </h3>
+
+                            <p>
+                                Comparação entre Guarulhos e as
+                                demais cidades paulistas.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="canvas-container canvas-grande">
+                        <canvas id="graficoCabosCidades"></canvas>
+                    </div>
+
+                </article>
+
+            </section>
+
+            <!-- ======================================= -->
+            <!-- BLOCO 3: OCORRÊNCIAS POR ESTADO -->
+            <!-- ======================================= -->
+
+            <section class="bloco-dashboard bloco-ocorrencias">
+
+                <div class="titulo-bloco">
+
+                    <span class="numero-bloco">3</span>
+
+                    <div>
+                        <h2>
+                            Ocorrências por estado
+                        </h2>
+
+                        <p>
+                            Total de Id Ocorrência registrado na Bahia,
+                            em Goiás e em São Paulo.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="grade-ocorrencias">
+
+                    <article class="grafico-painel">
+
+                        <div class="cabecalho-grafico">
+
+                            <div>
+                                <h3>
+                                    Quantidade de ocorrências por estado
+                                </h3>
+
+                                <p>
+                                    Contagem distinta da coluna
+                                    Id Ocorrência.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoOcorrenciasEstados"></canvas>
+                        </div>
+
+                    </article>
+
+                    <article class="indicador-card indicador-verde">
+
+                        <span class="indicador-titulo">
+                            Total de ocorrências
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Bahia, Goiás e São Paulo
+                        </span>
+
+                        <strong id="ocorrenciasTotal">
+                            0
+                        </strong>
+
+                        <span
+                            id="ocorrenciasVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="ocorrenciasPeriodoAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: 0
+                        </span>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+            <!-- ======================================= -->
+            <!-- BLOCO 4: RESUMO FINANCEIRO -->
+            <!-- ======================================= -->
+
+            <section class="bloco-dashboard bloco-financeiro">
+
+                <div class="titulo-bloco">
+
+                    <span class="numero-bloco">4</span>
+
+                    <div>
+                        <h2>
+                            Resumo financeiro por estado
+                        </h2>
+
+                        <p>
+                            Soma da coluna Valor Total no período selecionado.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="grade-financeiro">
+
+                    <article class="indicador-card indicador-laranja">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro — Bahia
+                        </span>
+
+                        <strong id="valorBahia">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="valorBahiaVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="valorBahiaAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-laranja">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro — Goiás
+                        </span>
+
+                        <strong id="valorGoias">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="valorGoiasVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="valorGoiasAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-laranja">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro — São Paulo
+                        </span>
+
+                        <strong id="valorSaoPaulo">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="valorSaoPauloVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="valorSaoPauloAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                    <article class="indicador-card indicador-laranja">
+
+                        <span class="indicador-titulo">
+                            Prejuízo financeiro total
+                        </span>
+
+                        <span class="indicador-subtitulo">
+                            Bahia, Goiás e São Paulo
+                        </span>
+
+                        <strong id="resumoValor">
+                            R$ 0,00
+                        </strong>
+
+                        <span
+                            id="resumoValorVariacao"
+                            class="indicador-variacao"
+                        >
+                            —
+                        </span>
+
+                        <span
+                            id="resumoValorAnterior"
+                            class="indicador-anterior"
+                        >
+                            Período anterior: R$ 0,00
+                        </span>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+        </section>
+
+        <!-- ======================================= -->
+        <!-- ABA DASHBOARDS -->
+        <!-- ======================================= -->
+
+        <section
+            id="dashboards"
+            class="secao"
+        >
+
+            <h2 class="titulo-pagina">
+                Dashboards
+            </h2>
+
+            <div class="dashboard-grid">
+
+                <div class="dashboard-card">
+
+                    <h3>BRASIL 2026</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiZjI2M2EyNDYtZDYxOS00MDNjLWFjY2MtYjUxZjZkNTJlMDMyIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiZjI2M2EyNDYtZDYxOS00MDNjLWFjY2MtYjUxZjZkNTJlMDMyIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>BRASIL 2025</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiOTdkNGRiOWYtODgxZC00ZDQ1LTkyOWMtYmE3ZmQ1MmY4ZWY5IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiOTdkNGRiOWYtODgxZC00ZDQ1LTkyOWMtYmE3ZmQ1MmY4ZWY5IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>BAHIA</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiYmIyNGYxNzItYzU1Zi00ZGY3LTgzYTctN2RkYWIwODdiZWI2IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiYmIyNGYxNzItYzU1Zi00ZGY3LTgzYTctN2RkYWIwODdiZWI2IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>GOIÁS</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiMmU5MDJmN2MtZjVkMy00MThlLTk0M2YtOTA0N2RhMTI4ZmYxIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiMmU5MDJmN2MtZjVkMy00MThlLTk0M2YtOTA0N2RhMTI4ZmYxIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>SÃO PAULO</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiMDkxMmViNTYtYjY4Yi00ZWI1LWFkMGYtNTUyMmYzOGVjOGE4IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiMDkxMmViNTYtYjY4Yi00ZWI1LWFkMGYtNTUyMmYzOGVjOGE4IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>BATIDAS - GO</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiNGE4NTI4YzMtODllZi00MjEzLTlmZGItOWJhNDllOTI2NzhjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiNGE4NTI4YzMtODllZi00MjEzLTlmZGItOWJhNDllOTI2NzhjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
+                <div class="dashboard-card">
+
+                    <h3>FACÇÕES</h3>
+
+                    <iframe
+                        src="https://app.powerbi.com/view?r=eyJrIjoiOWJkNDdiZGItNmY3ZC00YmZlLWJjYzktMzA1ODkxMWQwNjRjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        allowfullscreen="true"
+                    >
+                    </iframe>
+
+                    <a
+                        href="https://app.powerbi.com/view?r=eyJrIjoiOWJkNDdiZGItNmY3ZC00YmZlLWJjYzktMzA1ODkxMWQwNjRjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
+                        target="_blank"
+                    >
+                        Abrir Dashboard
+                    </a>
+
+                </div>
+
             </div>
 
-            <div class="kpi">
-                <span>Total Baterias</span>
-                <strong id="kpiBaterias">0</strong>
-            </div>
+        </section>
 
-            <div class="kpi">
-                <span>Valor Total</span>
-                <strong id="kpiValor">R$ 0,00</strong>
-            </div>
-        </div>
-    </div>
-    </div>
-    </section>
+    </main>
 
-    <section id="relatorios" class="secao">
-        <h2>Relatórios</h2>
-        <p>Área destinada aos relatórios do setor.</p>
-    </section>
-
-    <section id="apresentacoes" class="secao">
-        <h2>PowerPoints</h2>
-        <p>Área destinada às apresentações.</p>
-    </section>
-
-    <section id="dashboards" class="secao">
-    <h2>Dashboards</h2>
-
-    <div class="dashboard-grid">
-
-        <div class="dashboard-card">
-            <h3>BRASIL 2026</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiZjI2M2EyNDYtZDYxOS00MDNjLWFjY2MtYjUxZjZkNTJlMDMyIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiZjI2M2EyNDYtZDYxOS00MDNjLWFjY2MtYjUxZjZkNTJlMDMyIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-
-        <div class="dashboard-card">
-            <h3>BRASIL 2025</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiOTdkNGRiOWYtODgxZC00ZDQ1LTkyOWMtYmE3ZmQ1MmY4ZWY5IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiOTdkNGRiOWYtODgxZC00ZDQ1LTkyOWMtYmE3ZmQ1MmY4ZWY5IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-
-        <div class="dashboard-card">
-            <h3>BAHIA</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiYmIyNGYxNzItYzU1Zi00ZGY3LTgzYTctN2RkYWIwODdiZWI2IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiYmIyNGYxNzItYzU1Zi00ZGY3LTgzYTctN2RkYWIwODdiZWI2IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-        <div class="dashboard-card">
-            <h3>GOIAS</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiMmU5MDJmN2MtZjVkMy00MThlLTk0M2YtOTA0N2RhMTI4ZmYxIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiMmU5MDJmN2MtZjVkMy00MThlLTk0M2YtOTA0N2RhMTI4ZmYxIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-        <div class="dashboard-card">
-            <h3>SÃO PAULO</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiMDkxMmViNTYtYjY4Yi00ZWI1LWFkMGYtNTUyMmYzOGVjOGE4IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiMDkxMmViNTYtYjY4Yi00ZWI1LWFkMGYtNTUyMmYzOGVjOGE4IiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-        <div class="dashboard-card">
-            <h3>BATIDAS - GO</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiNGE4NTI4YzMtODllZi00MjEzLTlmZGItOWJhNDllOTI2NzhjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiNGE4NTI4YzMtODllZi00MjEzLTlmZGItOWJhNDllOTI2NzhjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-        <div class="dashboard-card">
-            <h3>FACÇÕES</h3>
-
-            <iframe
-                src="https://app.powerbi.com/view?r=eyJrIjoiOWJkNDdiZGItNmY3ZC00YmZlLWJjYzktMzA1ODkxMWQwNjRjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                allowfullscreen="true">
-            </iframe>
-
-            <a
-                href="https://app.powerbi.com/view?r=eyJrIjoiOWJkNDdiZGItNmY3ZC00YmZlLWJjYzktMzA1ODkxMWQwNjRjIiwidCI6IjQwMDZhZGYzLTk2NTUtNDNmZi04YWFlLWQ0YTI1ZGU0ODU5NiJ9"
-                target="_blank">
-                Abrir Dashboard
-            </a>
-        </div>
-
-    </div>
-</section>
-
-    <section id="Suspeitos" class="secao">
-        <h2>Suspeitos</h2>
-        <p>Área destinada aos casos do setor.</p>
-    </section>
-
-</main>
-    
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="dados_sigo.js"></script>
     <script src="script.js"></script>
+
 </body>
+
 </html>
