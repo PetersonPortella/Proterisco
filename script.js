@@ -1609,7 +1609,7 @@ function atualizarResumoFinanceiro(
         );
 
     atualizarFinanceiroEstado(
-        "BA",
+        "BAHIA",
         "valorBahia",
         "valorBahiaVariacao",
         "valorBahiaAnterior",
@@ -1618,7 +1618,7 @@ function atualizarResumoFinanceiro(
     );
 
     atualizarFinanceiroEstado(
-        "GO",
+        "GOIAS",
         "valorGoias",
         "valorGoiasVariacao",
         "valorGoiasAnterior",
@@ -1627,7 +1627,7 @@ function atualizarResumoFinanceiro(
     );
 
     atualizarFinanceiroEstado(
-        "SP",
+        "SAO PAULO",
         "valorSaoPaulo",
         "valorSaoPauloVariacao",
         "valorSaoPauloAnterior",
