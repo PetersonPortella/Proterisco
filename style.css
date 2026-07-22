@@ -17,7 +17,7 @@
     --vermelho: #ef233c;
     --vermelho-escuro: #991b1b;
 
-    --roxo: #8b5cf6;
+    --roxo: #1597d3;
     --verde: #22c55e;
     --azul: #2389ff;
     --laranja: #f97316;
@@ -341,7 +341,7 @@ main {
 }
 
 .bloco-cabos {
-    border-color: rgba(139, 92, 246, 0.85);
+    border-color: rgba(36, 39, 203, 0.85);
 }
 
 .bloco-ocorrencias {
@@ -349,7 +349,7 @@ main {
 }
 
 .bloco-financeiro {
-    border-color: rgba(249, 115, 22, 0.85);
+    border-color: rgba(216, 98, 14, 0.85);
 }
 
 /* =========================================================
@@ -505,12 +505,12 @@ main {
 }
 
 .indicador-roxo {
-    border-color: rgba(139, 92, 246, 0.7);
+    border-color: #0b26c2b3;
 }
 
 .indicador-roxo strong,
 .indicador-roxo .indicador-variacao {
-    color: var(--roxo);
+    color: #1597d3;
 }
 
 .indicador-verde {
@@ -893,8 +893,8 @@ main {
     opacity: 0;
 
     transition:
-        opacity 1.6s cubic-bezier(.19, 1, .22, 1),
-        transform 1.6s cubic-bezier(.19, 1, .22, 1);
+        opacity 5s cubic-bezier(.19, 1, .22, 1),
+        transform 5s cubic-bezier(.19, 1, .22, 1);
 
     will-change: opacity, transform;
 }
@@ -938,7 +938,7 @@ main {
 
 .grade-indicadores .indicador-card:nth-child(4),
 .grade-financeiro .indicador-card:nth-child(4) {
-    transition-delay: 0.36s;
+    transition-delay: 1.5s;
 }
 
 /* No celular, movimento menor */
@@ -967,10 +967,76 @@ main {
     .animar-scroll {
         opacity: 1;
         transform: none;
-        transition: none;
+        transition: 1ms;
     }
 }
 
+.cabecalho-principal {
+    padding: 3px;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+}
+
+.borda-animada-header {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 2px;
+    background: #08111f;
+}
+
+.borda-animada-header::before {
+    content: "";
+    position: absolute;
+
+    width: 460%;
+    height: 70000%;
+
+    top: 50%;
+    left: 50%;
+
+    background: conic-gradient(
+        transparent 0deg,
+        transparent 285deg,
+        #ff0000 310deg,
+        #ff001e 335deg,
+        #ffffff 345deg,
+        #ff001e 355deg,
+        transparent 360deg
+    );
+
+    transform: translate(-50%, -50%);
+    animation: girarBordaHeader 5s linear infinite;
+}
+
+.conteudo-header {
+    position: relative;
+    z-index: 2;
+
+    min-height: 120px;
+    padding: 25px 40px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #08111f;
+}
+
+@keyframes girarBordaHeader {
+    from {
+        transform:
+            translate(-50%, -50%)
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            translate(-50%, -50%)
+            rotate(360deg);
+    }
+}
 
 
 

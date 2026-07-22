@@ -16,18 +16,22 @@
     <!-- CABEÇALHO: NÃO ALTERADO -->
 
     <header class="cabecalho-principal">
+        <div class="borda-animada-header">
+            <div class="conteudo-header">
 
-        <div class="cabecalho-texto">
-            <h1>Setor de investigação</h1>
-            <p>Painel de Analise de Dados</p>
+                <div class="cabecalho-texto">
+                    <h1>Setor de Investigação</h1>
+                    <p>Painel de Análise de Dados</p>
+                </div>
+
+                <img
+                    src="imagem/prote-risco.png"
+                    alt="Logo da empresa"
+                    class="logo"
+                >
+
+            </div>
         </div>
-
-        <img
-            src="imagem/prote-risco.png"
-            alt="Logo da empresa"
-            class="logo"
-        >
-
     </header>
 
     <!-- MENU: NÃO ALTERADO -->
@@ -383,167 +387,193 @@
             </section>
 
             <!-- ======================================= -->
-            <!-- BLOCO 2: CABOS -->
-            <!-- ======================================= -->
+                <!-- BLOCO 2: CABOS E BATERIAS — GUARULHOS -->
+                <!-- ======================================= -->
 
-            <section class="bloco-dashboard bloco-cabos">
+                <section class="bloco-dashboard bloco-cabos">
 
-                <div class="titulo-bloco">
+                    <div class="titulo-bloco">
 
-                    <span class="numero-bloco">2</span>
-
-                    <div>
-                        <h2>
-                            Cabos furtados — São Paulo
-                        </h2>
-
-                        <p>
-                            Dados de Guarulhos e das demais cidades
-                            do estado de São Paulo.
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="grade-indicadores">
-
-                    <article class="indicador-card indicador-roxo">
-
-                        <span class="indicador-titulo">
-                            Total de cabos
-                        </span>
-
-                        <span class="indicador-subtitulo">
-                            Guarulhos e outras cidades de SP
-                        </span>
-
-                        <strong id="cabosTotal">
-                            0
-                        </strong>
-
-                        <span
-                            id="cabosVariacao"
-                            class="indicador-variacao"
-                        >
-                            —
-                        </span>
-
-                        <span
-                            id="cabosPeriodoAnterior"
-                            class="indicador-anterior"
-                        >
-                            Período anterior: 0
-                        </span>
-
-                    </article>
-
-                    <article class="indicador-card indicador-roxo">
-
-                        <span class="indicador-titulo">
-                            Média semanal de cabos
-                        </span>
-
-                        <span class="indicador-subtitulo">
-                            Estado de São Paulo
-                        </span>
-
-                        <strong id="cabosMediaSemanal">
-                            0
-                        </strong>
-
-                        <span class="indicador-legenda">
-                            Quantidade média por semana
-                        </span>
-
-                    </article>
-
-                    <article class="indicador-card indicador-roxo">
-
-                        <span class="indicador-titulo">
-                            Prejuízo financeiro
-                        </span>
-
-                        <span class="indicador-subtitulo">
-                            Cabos — Estado de São Paulo
-                        </span>
-
-                        <strong id="cabosValorTotal">
-                            R$ 0,00
-                        </strong>
-
-                        <span
-                            id="cabosValorVariacao"
-                            class="indicador-variacao"
-                        >
-                            —
-                        </span>
-
-                        <span
-                            id="cabosValorAnterior"
-                            class="indicador-anterior"
-                        >
-                            Período anterior: R$ 0,00
-                        </span>
-
-                    </article>
-
-                    <article class="indicador-card indicador-roxo">
-
-                        <span class="indicador-titulo">
-                            Ocorrências relacionadas a cabos
-                        </span>
-
-                        <span class="indicador-subtitulo">
-                            Quantidade de Id Ocorrência
-                        </span>
-
-                        <strong id="cabosOcorrencias">
-                            0
-                        </strong>
-
-                        <span
-                            id="cabosOcorrenciasVariacao"
-                            class="indicador-variacao"
-                        >
-                            —
-                        </span>
-
-                        <span
-                            id="cabosOcorrenciasAnterior"
-                            class="indicador-anterior"
-                        >
-                            Período anterior: 0
-                        </span>
-
-                    </article>
-
-                </div>
-
-                <article class="grafico-painel grafico-largo">
-
-                    <div class="cabecalho-grafico">
+                        <span class="numero-bloco">2</span>
 
                         <div>
-                            <h3>
-                                Cabos furtados por cidade —
-                                Estado de São Paulo
-                            </h3>
+                            <h2>
+                                Cabos e baterias furtados — Guarulhos
+                            </h2>
 
                             <p>
-                                Comparação entre Guarulhos e as
-                                demais cidades paulistas.
+                                Indicadores de furtos de cabos e baterias registrados
+                                exclusivamente na cidade de Guarulhos.
                             </p>
                         </div>
 
                     </div>
 
-                    <div class="canvas-container canvas-grande">
-                        <canvas id="graficoCabosCidades"></canvas>
+                    <div class="grade-indicadores">
+
+                        <article class="indicador-card indicador-roxo">
+
+                            <span class="indicador-titulo">
+                                Total de cabos furtados
+                            </span>
+
+                            <span class="indicador-subtitulo">
+                                Guarulhos
+                            </span>
+
+                            <strong id="cabosTotal">
+                                0
+                            </strong>
+
+                            <span
+                                id="cabosVariacao"
+                                class="indicador-variacao"
+                            >
+                                —
+                            </span>
+
+                            <span
+                                id="cabosPeriodoAnterior"
+                                class="indicador-anterior"
+                            >
+                                Período anterior: 0
+                            </span>
+
+                        </article>
+
+                        <article class="indicador-card indicador-roxo">
+
+                            <span class="indicador-titulo">
+                                Média semanal de cabos
+                            </span>
+
+                            <span class="indicador-subtitulo">
+                                Guarulhos
+                            </span>
+
+                            <strong id="cabosMediaSemanal">
+                                0
+                            </strong>
+
+                            <span class="indicador-legenda">
+                                Quantidade média por semana
+                            </span>
+
+                        </article>
+
+                        <article class="indicador-card indicador-roxo">
+
+                            <span class="indicador-titulo">
+                                Prejuízo financeiro com cabos
+                            </span>
+
+                            <span class="indicador-subtitulo">
+                                Guarulhos
+                            </span>
+
+                            <strong id="cabosValorTotal">
+                                R$ 0,00
+                            </strong>
+
+                            <span
+                                id="cabosValorVariacao"
+                                class="indicador-variacao"
+                            >
+                                —
+                            </span>
+
+                            <span
+                                id="cabosValorAnterior"
+                                class="indicador-anterior"
+                            >
+                                Período anterior: R$ 0,00
+                            </span>
+
+                        </article>
+
+                        <article class="indicador-card indicador-roxo">
+
+                            <span class="indicador-titulo">
+                                Ocorrências relacionadas a cabos
+                            </span>
+
+                            <span class="indicador-subtitulo">
+                                Quantidade de Id Ocorrência — Guarulhos
+                            </span>
+
+                            <strong id="cabosOcorrencias">
+                                0
+                            </strong>
+
+                            <span
+                                id="cabosOcorrenciasVariacao"
+                                class="indicador-variacao"
+                            >
+                                —
+                            </span>
+
+                            <span
+                                id="cabosOcorrenciasAnterior"
+                                class="indicador-anterior"
+                            >
+                                Período anterior: 0
+                            </span>
+
+                        </article>
+
                     </div>
 
-                </article>
+                    <!-- GRÁFICO 1 -->
 
-            </section>
+                    <article class="grafico-painel grafico-largo">
+
+                        <div class="cabecalho-grafico">
+
+                            <div>
+                                <h3>
+                                    Cabos e baterias furtados — Guarulhos
+                                </h3>
+
+                                <p>
+                                    Comparação da soma da coluna Quantidade
+                                    para cabos e baterias no período selecionado.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoCabosBateriasGuarulhos"></canvas>
+                        </div>
+
+                    </article>
+
+                    <!-- GRÁFICO 2 -->
+
+                    <article class="grafico-painel grafico-largo">
+
+                        <div class="cabecalho-grafico">
+
+                            <div>
+                                <h3>
+                                    Top 5 bairros com mais furtos de cabos — Guarulhos
+                                </h3>
+
+                                <p>
+                                    Ranking dos bairros pela soma da coluna Quantidade
+                                    no período selecionado.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="canvas-container canvas-grande">
+                            <canvas id="graficoTop5BairrosCabosGuarulhos"></canvas>
+                        </div>
+
+                    </article>
+
+                </section>
 
             <!-- ======================================= -->
             <!-- BLOCO 3: OCORRÊNCIAS POR ESTADO -->

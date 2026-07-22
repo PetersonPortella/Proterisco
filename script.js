@@ -1,5 +1,5 @@
 /* =========================================================
-   NAVEGAÇÃO ENTRE AS ABAS
+   NAVEGAÇÃO
 ========================================================= */
 
 function mostrarSecao(id) {
@@ -7,56 +7,39 @@ function mostrarSecao(id) {
         secao.classList.remove("ativa");
     });
 
-    const secaoSelecionada = document.getElementById(id);
-
-    if (secaoSelecionada) {
-        secaoSelecionada.classList.add("ativa");
-    }
+    const secao = document.getElementById(id);
+    if (secao) secao.classList.add("ativa");
 }
 
-let graficoBateriasMensalGoias = null;
-
-let graficoTop10SitesBahia = null;
 /* =========================================================
-   CONFIGURAÇÕES GERAIS
+   CONFIGURAÇÕES
 ========================================================= */
 
 const caminhoPlanilhaMestra = "./dados/SIGO_2026.xlsx";
-
-const estadosMonitorados = [
-    "BAHIA",
-    "GOIAS",
-    "SAO PAULO"
-];
+const estadosMonitorados = ["BAHIA", "GOIAS", "SAO PAULO"];
 
 const aliasesCabecalhos = {
-    "tipos de prejuizo / recuperacao":
-        "item de prejuizo / recuperacao",
-
-    "tipo de prejuizo / recuperacao":
-        "item de prejuizo / recuperacao",
-
-    "valor":
-        "valor total"
+    "tipos de prejuizo / recuperacao": "item de prejuizo / recuperacao",
+    "tipo de prejuizo / recuperacao": "item de prejuizo / recuperacao",
+    "valor": "valor total"
 };
 
 let workbookAtualizado = null;
+let cabecalhosMestra = [];
 let linhasMestra = [];
 let linhasNovas = [];
 let baseSIGO2026 = [];
-let cabecalhosMestra = [];
+let baseProcessada = [];
 
 let periodoSelecionado = "semana";
 let dataReferencia = new Date();
 
-let graficoBateriasCidades = null;
-let graficoCabosCidades = null;
-let graficoOcorrenciasEstados = null;
+const graficos = Object.create(null);
 
-
-/* =========================================================
-   ELEMENTOS DO HTML
-========================================================= */
+const mesesCurtos = [
+    "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+    "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+];
 
 const inputExcel =
     document.getElementById("inputExcel");
@@ -73,22 +56,21 @@ const resultadoImportacao =
 const periodoSelecionadoTexto =
     document.getElementById("periodoSelecionadoTexto");
 
-
 /* =========================================================
-   PLUGIN PARA MOSTRAR NÚMEROS NOS GRÁFICOS
+   PLUGIN DE VALORES NOS GRÁFICOS
 ========================================================= */
 
 const pluginValores = {
     id: "pluginValores",
 
     afterDatasetsDraw(chart) {
+        if (window.innerWidth <= 600) return;
+
         const contexto = chart.ctx;
 
         contexto.save();
         contexto.fillStyle = "#f8fafc";
         contexto.font = "bold 12px Arial";
-        contexto.textAlign = "center";
-        contexto.textBaseline = "bottom";
 
         chart.data.datasets.forEach(
             (dataset, indiceDataset) => {
@@ -125,7 +107,7 @@ const pluginValores = {
                             contexto.fillText(
                                 formatarNumero(valor),
                                 posicao.x,
-                                posicao.y - 8
+                                posicao.y - 7
                             );
                         }
                     }
@@ -139,7 +121,6 @@ const pluginValores = {
 
 Chart.register(pluginValores);
 
-
 /* =========================================================
    INICIALIZAÇÃO
 ========================================================= */
@@ -148,31 +129,35 @@ configurarBotoesPeriodo();
 configurarAnimacoesScroll();
 carregarPlanilhaMestra();
 
-
 /* =========================================================
    BOTÕES ANO, MÊS E SEMANA
 ========================================================= */
 
 function configurarBotoesPeriodo() {
-    const botoes =
-        document.querySelectorAll(".botao-periodo");
+    document
+        .querySelectorAll(".botao-periodo")
+        .forEach(botao => {
+            botao.addEventListener(
+                "click",
+                () => {
+                    document
+                        .querySelectorAll(".botao-periodo")
+                        .forEach(item => {
+                            item.classList.remove("ativo");
+                        });
 
-    botoes.forEach(botao => {
-        botao.addEventListener("click", function () {
-            botoes.forEach(item => {
-                item.classList.remove("ativo");
-            });
+                    botao.classList.add("ativo");
 
-            this.classList.add("ativo");
+                    periodoSelecionado =
+                        botao.dataset.periodo || "semana";
 
-            periodoSelecionado =
-                this.dataset.periodo || "semana";
-
-            atualizarDashboard();
+                    requestAnimationFrame(
+                        atualizarDashboard
+                    );
+                }
+            );
         });
-    });
 }
-
 
 /* =========================================================
    CARREGAR PLANILHA MESTRA
@@ -209,52 +194,20 @@ async function carregarPlanilhaMestra() {
         const abaMestra =
             workbookAtualizado.Sheets[nomeAba];
 
-        const dadosMestra =
-            XLSX.utils.sheet_to_json(
-                abaMestra,
-                {
-                    header: 1,
-                    defval: "",
-                    raw: true
-                }
-            );
-
-        const indiceCabecalho =
-            localizarLinhaCabecalho(dadosMestra);
-
-        if (indiceCabecalho === -1) {
-            throw new Error(
-                "Não foi possível encontrar os cabeçalhos da planilha mestra."
-            );
-        }
+        const leitura =
+            lerDadosDaAba(abaMestra);
 
         cabecalhosMestra =
-            dadosMestra[indiceCabecalho]
-                .map(valor =>
-                    String(valor ?? "").trim()
-                )
-                .filter(cabecalho =>
-                    cabecalho !== ""
-                );
+            leitura.cabecalhos;
 
-        linhasMestra = dadosMestra
-            .slice(indiceCabecalho + 1)
-            .filter(linha =>
-                linha.some(valor =>
-                    String(valor ?? "").trim() !== ""
-                )
-            )
-            .map(linha =>
-                transformarLinhaEmObjeto(
-                    linha,
-                    cabecalhosMestra
-                )
-            );
+        linhasMestra =
+            leitura.linhas;
 
-        baseSIGO2026 = [...linhasMestra];
+        baseSIGO2026 = [
+            ...linhasMestra
+        ];
 
-        dataReferencia =
-            encontrarDataReferencia(baseSIGO2026);
+        reconstruirBaseProcessada();
 
         statusMestra.textContent =
             `Planilha mestra carregada: ` +
@@ -273,14 +226,13 @@ async function carregarPlanilhaMestra() {
     }
 }
 
-
 /* =========================================================
-   IMPORTAR PLANILHA SEMANAL
+   IMPORTAÇÃO DA PLANILHA SEMANAL
 ========================================================= */
 
 inputExcel.addEventListener(
     "change",
-    async function (evento) {
+    async evento => {
         const arquivo =
             evento.target.files[0];
 
@@ -300,7 +252,7 @@ inputExcel.addEventListener(
             linhasNovas =
                 await lerPlanilhaSemanal(arquivo);
 
-            if (linhasNovas.length === 0) {
+            if (!linhasNovas.length) {
                 throw new Error(
                     "A planilha semanal não possui dados."
                 );
@@ -323,9 +275,7 @@ inputExcel.addEventListener(
             ];
 
             atualizarWorkbook();
-
-            dataReferencia =
-                encontrarDataReferencia(baseSIGO2026);
+            reconstruirBaseProcessada();
 
             resultadoImportacao.textContent =
                 `${formatarNumero(linhasNovas.length)} ` +
@@ -347,9 +297,8 @@ inputExcel.addEventListener(
     }
 );
 
-
 /* =========================================================
-   LEITURA DA PLANILHA SEMANAL
+   LEITURA DE XLS/XLSX
 ========================================================= */
 
 async function lerPlanilhaSemanal(arquivo) {
@@ -357,13 +306,17 @@ async function lerPlanilhaSemanal(arquivo) {
         await arquivo.arrayBuffer();
 
     if (
-        arquivo.name.toLowerCase().endsWith(".xls") &&
+        arquivo.name
+            .toLowerCase()
+            .endsWith(".xls") &&
         arquivoEhHtml(conteudo)
     ) {
-        return lerArquivoHtmlXls(conteudo);
+        return lerArquivoHtmlXls(
+            conteudo
+        );
     }
 
-    const workbookNovo = XLSX.read(
+    const workbook = XLSX.read(
         conteudo,
         {
             type: "array",
@@ -371,154 +324,15 @@ async function lerPlanilhaSemanal(arquivo) {
         }
     );
 
-    const nomeAbaNova =
-        workbookNovo.SheetNames[0];
+    const nomeAba =
+        workbook.SheetNames[0];
 
-    const abaNova =
-        workbookNovo.Sheets[nomeAbaNova];
-
-    return lerAbaExcel(abaNova);
+    return lerDadosDaAba(
+        workbook.Sheets[nomeAba]
+    ).linhas;
 }
 
-
-function arquivoEhHtml(conteudo) {
-    const bytes =
-        new Uint8Array(
-            conteudo.slice(0, 300)
-        );
-
-    const inicio =
-        new TextDecoder("windows-1252")
-            .decode(bytes);
-
-    const texto =
-        inicio.trim().toLowerCase();
-
-    return (
-        texto.startsWith("<!doctype html") ||
-        texto.startsWith("<html") ||
-        texto.includes("<table")
-    );
-}
-
-
-function lerArquivoHtmlXls(conteudo) {
-    const texto =
-        new TextDecoder("windows-1252")
-            .decode(conteudo);
-
-    const documento =
-        new DOMParser().parseFromString(
-            texto,
-            "text/html"
-        );
-
-    const tabela =
-        documento.querySelector("table");
-
-    if (!tabela) {
-        throw new Error(
-            "Nenhuma tabela foi encontrada no arquivo XLS."
-        );
-    }
-
-    const linhasTabela =
-        Array.from(
-            tabela.querySelectorAll("tr")
-        );
-
-    if (linhasTabela.length < 2) {
-        throw new Error(
-            "A planilha semanal não possui dados."
-        );
-    }
-
-    const indiceCabecalho =
-        localizarCabecalhoTabelaHtml(
-            linhasTabela
-        );
-
-    if (indiceCabecalho === -1) {
-        throw new Error(
-            "Não foi possível localizar o cabeçalho do arquivo XLS."
-        );
-    }
-
-    const cabecalhos =
-        Array.from(
-            linhasTabela[indiceCabecalho]
-                .querySelectorAll("th, td")
-        ).map(celula =>
-            limparTexto(celula.textContent)
-        );
-
-    return linhasTabela
-        .slice(indiceCabecalho + 1)
-        .map(linha => {
-            const celulas =
-                Array.from(
-                    linha.querySelectorAll(
-                        "th, td"
-                    )
-                );
-
-            const objeto = {};
-
-            cabecalhos.forEach(
-                (cabecalho, indice) => {
-                    if (!cabecalho) return;
-
-                    objeto[cabecalho] =
-                        limparTexto(
-                            celulas[indice]
-                                ?.textContent ?? ""
-                        );
-                }
-            );
-
-            return objeto;
-        })
-        .filter(linha =>
-            Object.values(linha).some(
-                valor =>
-                    String(valor ?? "").trim() !== ""
-            )
-        );
-}
-
-
-function localizarCabecalhoTabelaHtml(
-    linhas
-) {
-    return linhas.findIndex(linha => {
-        const valores =
-            Array.from(
-                linha.querySelectorAll(
-                    "th, td"
-                )
-            ).map(celula =>
-                normalizarCabecalho(
-                    celula.textContent
-                )
-            );
-
-        const esperados = [
-            "estado",
-            "grupo de ocorrencia",
-            "quantidade"
-        ];
-
-        const encontrados =
-            esperados.filter(cabecalho =>
-                valores.includes(cabecalho)
-            );
-
-        return encontrados.length >= 2;
-    });
-}
-
-
-function lerAbaExcel(aba) {
+function lerDadosDaAba(aba) {
     const dados =
         XLSX.utils.sheet_to_json(
             aba,
@@ -539,15 +353,16 @@ function lerAbaExcel(aba) {
     }
 
     const cabecalhos =
-        dados[indiceCabecalho].map(valor =>
-            String(valor ?? "").trim()
-        );
+        dados[indiceCabecalho]
+            .map(valor =>
+                limparTexto(valor)
+            );
 
-    return dados
+    const linhas = dados
         .slice(indiceCabecalho + 1)
         .filter(linha =>
             linha.some(valor =>
-                String(valor ?? "").trim() !== ""
+                limparTexto(valor) !== ""
             )
         )
         .map(linha =>
@@ -556,33 +371,167 @@ function lerAbaExcel(aba) {
                 cabecalhos
             )
         );
+
+    return {
+        cabecalhos:
+            cabecalhos.filter(Boolean),
+
+        linhas
+    };
 }
 
+function arquivoEhHtml(conteudo) {
+    const bytes =
+        new Uint8Array(
+            conteudo.slice(0, 300)
+        );
+
+    const texto =
+        new TextDecoder("windows-1252")
+            .decode(bytes)
+            .trim()
+            .toLowerCase();
+
+    return (
+        texto.startsWith("<!doctype html") ||
+        texto.startsWith("<html") ||
+        texto.includes("<table")
+    );
+}
+
+function lerArquivoHtmlXls(conteudo) {
+    const texto =
+        new TextDecoder("windows-1252")
+            .decode(conteudo);
+
+    const documento =
+        new DOMParser()
+            .parseFromString(
+                texto,
+                "text/html"
+            );
+
+    const tabela =
+        documento.querySelector("table");
+
+    if (!tabela) {
+        throw new Error(
+            "Nenhuma tabela foi encontrada no arquivo XLS."
+        );
+    }
+
+    const linhasTabela =
+        Array.from(
+            tabela.querySelectorAll("tr")
+        );
+
+    const indiceCabecalho =
+        localizarCabecalhoTabelaHtml(
+            linhasTabela
+        );
+
+    if (indiceCabecalho === -1) {
+        throw new Error(
+            "Não foi possível localizar o cabeçalho do arquivo XLS."
+        );
+    }
+
+    const cabecalhos =
+        Array.from(
+            linhasTabela[indiceCabecalho]
+                .querySelectorAll("th, td")
+        ).map(celula =>
+            limparTexto(
+                celula.textContent
+            )
+        );
+
+    return linhasTabela
+        .slice(indiceCabecalho + 1)
+        .map(linha => {
+            const celulas =
+                Array.from(
+                    linha.querySelectorAll(
+                        "th, td"
+                    )
+                );
+
+            const objeto = {};
+
+            cabecalhos.forEach(
+                (cabecalho, indice) => {
+                    if (cabecalho) {
+                        objeto[cabecalho] =
+                            limparTexto(
+                                celulas[indice]
+                                    ?.textContent ?? ""
+                            );
+                    }
+                }
+            );
+
+            return objeto;
+        })
+        .filter(linha =>
+            Object.values(linha)
+                .some(valor =>
+                    limparTexto(valor) !== ""
+                )
+        );
+}
+
+function localizarCabecalhoTabelaHtml(
+    linhas
+) {
+    return linhas.findIndex(
+        linha => {
+            const valores =
+                Array.from(
+                    linha.querySelectorAll(
+                        "th, td"
+                    )
+                ).map(celula =>
+                    normalizarCabecalho(
+                        celula.textContent
+                    )
+                );
+
+            const encontrados = [
+                "estado",
+                "grupo de ocorrencia",
+                "quantidade"
+            ].filter(cabecalho =>
+                valores.includes(cabecalho)
+            );
+
+            return encontrados.length >= 2;
+        }
+    );
+}
 
 function localizarLinhaCabecalho(dados) {
-    const cabecalhosEsperados = [
+    const esperados = [
         "id ocorrencia",
         "estado",
         "grupo de ocorrencia",
         "quantidade"
     ];
 
-    return dados.findIndex(linha => {
-        const valoresNormalizados =
-            linha.map(normalizarCabecalho);
+    return dados.findIndex(
+        linha => {
+            const valores =
+                linha.map(
+                    normalizarCabecalho
+                );
 
-        const encontrados =
-            cabecalhosEsperados.filter(
-                cabecalho =>
-                    valoresNormalizados.includes(
-                        cabecalho
-                    )
-            );
-
-        return encontrados.length >= 3;
-    });
+            return esperados
+                .filter(cabecalho =>
+                    valores.includes(cabecalho)
+                )
+                .length >= 3;
+        }
+    );
 }
-
 
 function transformarLinhaEmObjeto(
     linha,
@@ -592,109 +541,93 @@ function transformarLinhaEmObjeto(
 
     cabecalhos.forEach(
         (cabecalho, indice) => {
-            if (!cabecalho) return;
-
-            objeto[cabecalho] =
-                linha[indice] ?? "";
+            if (cabecalho) {
+                objeto[cabecalho] =
+                    linha[indice] ?? "";
+            }
         }
     );
 
     return objeto;
 }
 
-
 /* =========================================================
-   VALIDAÇÃO DOS CABEÇALHOS
+   VALIDAÇÃO E PADRONIZAÇÃO
 ========================================================= */
 
 function validarCabecalhos(
     cabecalhosDaMestra,
     novasLinhas
 ) {
-    if (novasLinhas.length === 0) {
-        throw new Error(
-            "A planilha selecionada está vazia."
-        );
-    }
-
     const cabecalhosNova =
-        Object.keys(novasLinhas[0]);
-
-    const cabecalhosNovaNormalizados =
-        cabecalhosNova.map(
-            normalizarCabecalho
+        new Set(
+            Object.keys(novasLinhas[0])
+                .map(normalizarCabecalho)
         );
 
     const faltando =
         cabecalhosDaMestra.filter(
-            cabecalhoMestra => {
-                const normalizado =
+            cabecalho => {
+                return !cabecalhosNova.has(
                     normalizarCabecalho(
-                        cabecalhoMestra
-                    );
-
-                return !cabecalhosNovaNormalizados
-                    .includes(normalizado);
+                        cabecalho
+                    )
+                );
             }
         );
 
-    if (faltando.length > 0) {
+    if (faltando.length) {
         throw new Error(
             `Planilha inválida. Colunas ausentes: ` +
-            faltando.join(", ")
+            `${faltando.join(", ")}`
         );
     }
 }
-
 
 function padronizarLinhasNovas(
     novasLinhas,
     cabecalhosDaMestra
 ) {
-    return novasLinhas.map(linha => {
-        const linhaPadronizada = {};
-        const mapaNovaLinha = {};
+    return novasLinhas.map(
+        linha => {
+            const mapa =
+                Object.create(null);
 
-        Object.keys(linha).forEach(
-            cabecalho => {
-                mapaNovaLinha[
-                    normalizarCabecalho(
-                        cabecalho
-                    )
-                ] = linha[cabecalho];
-            }
-        );
+            Object.keys(linha)
+                .forEach(cabecalho => {
+                    mapa[
+                        normalizarCabecalho(
+                            cabecalho
+                        )
+                    ] = linha[cabecalho];
+                });
 
-        cabecalhosDaMestra.forEach(
-            cabecalhoMestra => {
-                const chaveNormalizada =
-                    normalizarCabecalho(
-                        cabecalhoMestra
-                    );
+            const padronizada = {};
 
-                linhaPadronizada[
-                    cabecalhoMestra
-                ] =
-                    mapaNovaLinha[
-                        chaveNormalizada
-                    ] ?? "";
-            }
-        );
+            cabecalhosDaMestra
+                .forEach(cabecalho => {
+                    padronizada[cabecalho] =
+                        mapa[
+                            normalizarCabecalho(
+                                cabecalho
+                            )
+                        ] ?? "";
+                });
 
-        return linhaPadronizada;
-    });
+            return padronizada;
+        }
+    );
 }
 
-
 /* =========================================================
-   ATUALIZAR E SALVAR EXCEL
+   SALVAR PLANILHA ATUALIZADA
 ========================================================= */
 
 function atualizarWorkbook() {
     const nomeAba =
         workbookAtualizado.SheetNames[0];
 
-    const dadosParaSalvar = [
+    const dados = [
         cabecalhosMestra,
 
         ...baseSIGO2026.map(linha =>
@@ -705,19 +638,16 @@ function atualizarWorkbook() {
         )
     ];
 
-    const novaAba =
+    workbookAtualizado
+        .Sheets[nomeAba] =
         XLSX.utils.aoa_to_sheet(
-            dadosParaSalvar
+            dados
         );
-
-    workbookAtualizado.Sheets[nomeAba] =
-        novaAba;
 }
-
 
 salvarPlanilha.addEventListener(
     "click",
-    function () {
+    () => {
         if (!workbookAtualizado) return;
 
         XLSX.writeFile(
@@ -727,40 +657,163 @@ salvarPlanilha.addEventListener(
     }
 );
 
-
 /* =========================================================
-   ATUALIZAÇÃO COMPLETA DO DASHBOARD
+   BASE PROCESSADA — UMA ÚNICA VEZ
 ========================================================= */
 
-function atualizarDashboard() {
-    if (!baseSIGO2026.length) return;
+function reconstruirBaseProcessada() {
+    baseProcessada =
+        baseSIGO2026.map(linha => ({
+            original: linha,
 
-    const contexto =
-        criarContextoPeriodo(
-            baseSIGO2026
-        );
+            data: converterData(
+                obterCampoDireto(
+                    linha,
+                    [
+                        "Data da Ocorrência",
+                        "Data da Ocorrencia"
+                    ]
+                )
+            ),
 
-    atualizarTextoPeriodo(contexto);
+            estado: normalizarTexto(
+                obterCampoDireto(
+                    linha,
+                    ["Estado"]
+                )
+            ),
 
-    atualizarBlocoBaterias(contexto);
-    atualizarBlocoCabos(contexto);
-    atualizarOcorrenciasEstados(contexto);
-    atualizarResumoFinanceiro(contexto);
+            cidade: normalizarTexto(
+                obterCampoDireto(
+                    linha,
+                    ["Cidade"]
+                )
+            ),
+
+            bairro: normalizarTexto(
+                obterCampoDireto(
+                    linha,
+                    ["Bairro"]
+                )
+            ),
+
+            tipo: normalizarTexto(
+                obterCampoDireto(
+                    linha,
+                    [
+                        "Item de Prejuízo / Recuperação",
+                        "Tipo de Prejuízo / Recuperação",
+                        "Tipos de Prejuízo / Recuperação"
+                    ]
+                )
+            ),
+
+            quantidade: converterNumero(
+                obterCampoDireto(
+                    linha,
+                    ["Quantidade"]
+                )
+            ),
+
+            valor: converterNumero(
+                obterCampoDireto(
+                    linha,
+                    [
+                        "Valor Total",
+                        "Valor"
+                    ]
+                )
+            ),
+
+            id: limparTexto(
+                obterCampoDireto(
+                    linha,
+                    [
+                        "Id Ocorrência",
+                        "ID Ocorrência",
+                        "Id"
+                    ]
+                )
+            ),
+
+            site: limparTexto(
+                obterCampoDireto(
+                    linha,
+                    [
+                        "Site/Loja",
+                        "Site / Loja"
+                    ]
+                )
+            )
+        }));
+
+    const datasValidas =
+        baseProcessada
+            .map(item => item.data)
+            .filter(data =>
+                data &&
+                !Number.isNaN(
+                    data.getTime()
+                )
+            );
+
+    dataReferencia =
+        datasValidas.length
+            ? new Date(
+                Math.max(
+                    ...datasValidas.map(
+                        data =>
+                            data.getTime()
+                    )
+                )
+            )
+            : new Date();
 }
 
+function obterCampoDireto(
+    linha,
+    nomesPossiveis
+) {
+    const mapa =
+        Object.create(null);
+
+    Object.keys(linha)
+        .forEach(chave => {
+            mapa[
+                normalizarCabecalho(chave)
+            ] = linha[chave];
+        });
+
+    for (
+        const nome
+        of nomesPossiveis
+    ) {
+        const chave =
+            normalizarCabecalho(nome);
+
+        if (
+            Object.prototype
+                .hasOwnProperty.call(
+                    mapa,
+                    chave
+                )
+        ) {
+            return mapa[chave];
+        }
+    }
+
+    return "";
+}
 
 /* =========================================================
    PERÍODOS
 ========================================================= */
 
-function criarContextoPeriodo(base) {
-    const referencia =
-        new Date(dataReferencia);
-
+function criarContextoPeriodo() {
     const periodoAtual =
         obterIntervaloAtual(
             periodoSelecionado,
-            referencia
+            dataReferencia
         );
 
     const periodoAnterior =
@@ -770,26 +823,24 @@ function criarContextoPeriodo(base) {
         );
 
     return {
-        referencia,
         periodoAtual,
         periodoAnterior,
 
         linhasAtual:
-            filtrarPorIntervalo(
-                base,
+            filtrarProcessadaPorIntervalo(
+                baseProcessada,
                 periodoAtual.inicio,
                 periodoAtual.fim
             ),
 
         linhasAnterior:
-            filtrarPorIntervalo(
-                base,
+            filtrarProcessadaPorIntervalo(
+                baseProcessada,
                 periodoAnterior.inicio,
                 periodoAnterior.fim
             )
     };
 }
-
 
 function obterIntervaloAtual(
     tipo,
@@ -835,21 +886,26 @@ function obterIntervaloAtual(
         };
     }
 
-    return obterSemanaDaData(referencia);
+    return obterSemanaDaData(
+        referencia
+    );
 }
-
 
 function obterIntervaloAnterior(
     tipo,
-    intervaloAtual
+    atual
 ) {
     if (tipo === "ano") {
         const ano =
-            intervaloAtual.inicio
+            atual.inicio
                 .getFullYear() - 1;
 
         return {
-            inicio: new Date(ano, 0, 1),
+            inicio: new Date(
+                ano,
+                0,
+                1
+            ),
 
             fim: new Date(
                 ano,
@@ -866,10 +922,12 @@ function obterIntervaloAnterior(
     if (tipo === "mes") {
         const inicio =
             new Date(
-                intervaloAtual.inicio
+                atual.inicio
                     .getFullYear(),
-                intervaloAtual.inicio
+
+                atual.inicio
                     .getMonth() - 1,
+
                 1
             );
 
@@ -889,7 +947,7 @@ function obterIntervaloAnterior(
     }
 
     const fim =
-        new Date(intervaloAtual.inicio);
+        new Date(atual.inicio);
 
     fim.setDate(
         fim.getDate() - 1
@@ -922,21 +980,20 @@ function obterIntervaloAnterior(
     };
 }
 
-
 function obterSemanaDaData(data) {
     const inicio =
         new Date(data);
 
-    const diaSemana =
+    const dia =
         inicio.getDay();
 
-    const diferenca =
-        diaSemana === 0
-            ? -6
-            : 1 - diaSemana;
-
     inicio.setDate(
-        inicio.getDate() + diferenca
+        inicio.getDate() +
+        (
+            dia === 0
+                ? -6
+                : 1 - dia
+        )
     );
 
     inicio.setHours(
@@ -966,30 +1023,29 @@ function obterSemanaDaData(data) {
     };
 }
 
-
-function filtrarPorIntervalo(
+function filtrarProcessadaPorIntervalo(
     base,
     inicio,
     fim
 ) {
-    return base.filter(linha => {
-        const data =
-            obterDataOcorrencia(linha);
-
-        return (
-            data &&
-            data >= inicio &&
-            data <= fim
-        );
-    });
+    return base.filter(
+        item =>
+            item.data &&
+            item.data >= inicio &&
+            item.data <= fim
+    );
 }
 
-
-function atualizarTextoPeriodo(contexto) {
-    if (!periodoSelecionadoTexto) return;
+function atualizarTextoPeriodo(
+    contexto
+) {
+    if (!periodoSelecionadoTexto) {
+        return;
+    }
 
     if (periodoSelecionado === "ano") {
-        periodoSelecionadoTexto.textContent =
+        periodoSelecionadoTexto
+            .textContent =
             `Ano selecionado: ` +
             `${contexto.periodoAtual.inicio.getFullYear()}`;
 
@@ -997,16 +1053,18 @@ function atualizarTextoPeriodo(contexto) {
     }
 
     if (periodoSelecionado === "mes") {
-        periodoSelecionadoTexto.textContent =
+        periodoSelecionadoTexto
+            .textContent =
             `Mês selecionado: ` +
-            formatarMesAno(
+            `${formatarMesAno(
                 contexto.periodoAtual.inicio
-            );
+            )}`;
 
         return;
     }
 
-    periodoSelecionadoTexto.textContent =
+    periodoSelecionadoTexto
+        .textContent =
         `Semana selecionada: ` +
         `${formatarDataCurta(
             contexto.periodoAtual.inicio
@@ -1015,43 +1073,90 @@ function atualizarTextoPeriodo(contexto) {
         )}`;
 }
 
-
 /* =========================================================
-   BATERIAS — BAHIA E GOIÁS
+   ATUALIZAR DASHBOARD
 ========================================================= */
 
-function atualizarBlocoBaterias(contexto) {
-    const bateriasAtual =
-        filtrarBateriasBahiaGoias(
-            contexto.linhasAtual
+function atualizarDashboard() {
+    if (!baseProcessada.length) return;
+
+    const contexto =
+        criarContextoPeriodo();
+
+    atualizarTextoPeriodo(contexto);
+    atualizarBlocoBaterias(contexto);
+    atualizarTop10SitesBahia(contexto);
+    atualizarBlocoCabos(contexto);
+    atualizarOcorrenciasEstados(contexto);
+    atualizarResumoFinanceiro(contexto);
+}
+
+/* =========================================================
+   BATERIAS
+========================================================= */
+
+function ehBateria(item) {
+    return item.tipo.includes(
+        "BATERIA"
+    );
+}
+
+function atualizarBlocoBaterias(
+    contexto
+) {
+    const bateriasPeriodoTodos =
+        contexto.linhasAtual
+            .filter(ehBateria);
+
+    const atual =
+        contexto.linhasAtual.filter(
+            item =>
+                ehBateria(item) &&
+                (
+                    item.estado === "BAHIA" ||
+                    item.estado === "GOIAS"
+                )
         );
 
-    const bateriasAnterior =
-        filtrarBateriasBahiaGoias(
-            contexto.linhasAnterior
+    const anterior =
+        contexto.linhasAnterior.filter(
+            item =>
+                ehBateria(item) &&
+                (
+                    item.estado === "BAHIA" ||
+                    item.estado === "GOIAS"
+                )
         );
 
     const totalAtual =
-        somarQuantidade(bateriasAtual);
+        somarQuantidadeProcessada(
+            atual
+        );
 
     const totalAnterior =
-        somarQuantidade(
-            bateriasAnterior
+        somarQuantidadeProcessada(
+            anterior
         );
 
     const valorAtual =
-        somarValor(bateriasAtual);
+        somarValorProcessada(
+            atual
+        );
 
     const valorAnterior =
-        somarValor(bateriasAnterior);
+        somarValorProcessada(
+            anterior
+        );
 
     const ocorrenciasAtual =
-        contarIdsUnicos(bateriasAtual);
+        contarIdsProcessados(
+            atual
+        );
 
     const ocorrenciasAnterior =
-        contarIdsUnicos(
-            bateriasAnterior
-        );    
+        contarIdsProcessados(
+            anterior
+        );
 
     alterarTexto(
         "bateriasTotal",
@@ -1061,8 +1166,8 @@ function atualizarBlocoBaterias(contexto) {
     alterarTexto(
         "bateriasMediaSemanal",
         formatarNumero(
-            calcularMediaSemanal(
-                bateriasAtual,
+            calcularMediaSemanalProcessada(
+                atual,
                 contexto.periodoAtual
             )
         )
@@ -1118,42 +1223,220 @@ function atualizarBlocoBaterias(contexto) {
         )}`
     );
 
-    criarGraficoBateriasPorCidade(
-        bateriasAtual
+    atualizarGraficoBateriasCidades(
+        atual
     );
-    
-    criarGraficoBateriasMensalBahia(contexto.linhasAtual);
-    criarGraficoBateriasMensalGoias(baseSIGO2026);
-    criarGraficoTop10SitesBahia(baseSIGO2026);
+
+    atualizarGraficoPeriodoBaterias(
+        "BAHIA",
+        "graficoBateriasMensalBahia",
+        "#f35810"
+    );
+
+    atualizarGraficoPeriodoBaterias(
+        "GOIAS",
+        "graficoBateriasMensalGoias",
+        "#c5b916"
+    );
+
+    atualizarGraficosBateriasPorEstadoCidade(
+        bateriasPeriodoTodos
+    );
 }
 
-
-function filtrarBateriasBahiaGoias(
-    linhas
+function atualizarGraficoPeriodoBaterias(
+    estado,
+    canvasId,
+    cor
 ) {
-    return linhas.filter(linha => {
-        const tipo =
-            obterTipoPrejuizo(linha);
-
-        const estado =
-            obterEstado(linha);
-
-        const ehBateria =
-            tipo.includes("BATERIA");
-
-        const estadoPermitido =
-            estado === "BAHIA" ||
-            estado === "GOIAS";
-
-        return (
-            ehBateria &&
-            estadoPermitido
+    const linhas =
+        baseProcessada.filter(
+            item =>
+                item.estado === estado &&
+                ehBateria(item)
         );
-    });
+
+    let labels = [];
+    let valores = [];
+
+    if (periodoSelecionado === "ano") {
+        labels = mesesCurtos;
+        valores = new Array(12).fill(0);
+
+        const ano =
+            dataReferencia.getFullYear();
+
+        linhas.forEach(item => {
+            if (
+                item.data &&
+                item.data.getFullYear() === ano
+            ) {
+                valores[
+                    item.data.getMonth()
+                ] += item.quantidade;
+            }
+        });
+
+    } else if (
+        periodoSelecionado === "mes"
+    ) {
+        const agrupado =
+            agruparPorSemanasDoMesProcessada(
+                linhas,
+                dataReferencia
+            );
+
+        labels = agrupado.labels;
+        valores = agrupado.valores;
+
+    } else {
+        labels = [
+            "Seg",
+            "Ter",
+            "Qua",
+            "Qui",
+            "Sex",
+            "Sáb",
+            "Dom"
+        ];
+
+        valores =
+            new Array(7).fill(0);
+
+        const semana =
+            obterSemanaDaData(
+                dataReferencia
+            );
+
+        filtrarProcessadaPorIntervalo(
+            linhas,
+            semana.inicio,
+            semana.fim
+        ).forEach(item => {
+            const indice =
+                item.data.getDay() === 0
+                    ? 6
+                    : item.data.getDay() - 1;
+
+            valores[indice] +=
+                item.quantidade;
+        });
+    }
+
+    criarOuAtualizarGrafico(
+        canvasId,
+        {
+            type: "bar",
+
+            data: {
+                labels,
+
+                datasets: [{
+                    data: valores,
+
+                    backgroundColor: cor,
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor: cor,
+                    borderWidth: 1,
+
+                    hoverBorderColor:
+                        "#ffffff",
+
+                    hoverBorderWidth: 2,
+
+                    borderRadius: 20,
+                    borderSkipped: false,
+                    maxBarThickness: 45
+                }]
+            },
+
+            options:
+                opcoesGraficoBarras()
+        }
+    );
 }
 
+function agruparPorSemanasDoMesProcessada(
+    linhas,
+    referencia
+) {
+    const ano =
+        referencia.getFullYear();
 
-function criarGraficoBateriasPorCidade(
+    const mes =
+        referencia.getMonth();
+
+    const ultimoDia =
+        new Date(
+            ano,
+            mes + 1,
+            0
+        ).getDate();
+
+    const labels = [];
+    const valores = [];
+
+    for (
+        let inicioDia = 1,
+            semana = 1;
+
+        inicioDia <= ultimoDia;
+
+        inicioDia += 7,
+            semana++
+    ) {
+        const fimDia =
+            Math.min(
+                inicioDia + 6,
+                ultimoDia
+            );
+
+        const inicio =
+            new Date(
+                ano,
+                mes,
+                inicioDia,
+                0,
+                0,
+                0,
+                0
+            );
+
+        const fim =
+            new Date(
+                ano,
+                mes,
+                fimDia,
+                23,
+                59,
+                59,
+                999
+            );
+
+        labels.push(
+            `Semana ${semana}`
+        );
+
+        valores.push(
+            somarQuantidadeProcessada(
+                filtrarProcessadaPorIntervalo(
+                    linhas,
+                    inicio,
+                    fim
+                )
+            )
+        );
+    }
+
+    return {
+        labels,
+        valores
+    };
+}
+
+function atualizarGraficoBateriasCidades(
     linhas
 ) {
     const dados = {
@@ -1166,138 +1449,328 @@ function criarGraficoBateriasPorCidade(
         "Outras cidades GO": 0
     };
 
-    linhas.forEach(linha => {
-        const estado =
-            obterEstado(linha);
+    linhas.forEach(item => {
+        if (item.estado === "BAHIA") {
+            const mapa = {
+                "SALVADOR": "Salvador",
+                "CAMACARI": "Camaçari",
+                "SIMOES FILHO":
+                    "Simões Filho",
+                "VERA CRUZ": "Vera Cruz"
+            };
 
-        const cidade =
-            normalizarTexto(
-                obterCampo(
-                    linha,
-                    ["Cidade"]
-                )
-            );
-
-        const quantidade =
-            obterQuantidade(linha);
-
-        if (estado === "BAHIA") {
-            if (cidade === "SALVADOR") {
-                dados["Salvador"] +=
-                    quantidade;
-            } else if (
-                cidade === "CAMACARI"
-            ) {
-                dados["Camaçari"] +=
-                    quantidade;
-            } else if (
-                cidade === "SIMOES FILHO"
-            ) {
-                dados["Simões Filho"] +=
-                    quantidade;
-            } else if (
-                cidade === "VERA CRUZ"
-            ) {
-                dados["Vera Cruz"] +=
-                    quantidade;
-            } else {
-                dados["Outras cidades BA"] +=
-                    quantidade;
-            }
+            dados[
+                mapa[item.cidade] ||
+                "Outras cidades BA"
+            ] += item.quantidade;
         }
 
-        if (estado === "GOIAS") {
-            if (cidade === "GOIANIA") {
-                dados["Goiânia"] +=
-                    quantidade;
-            } else {
-                dados["Outras cidades GO"] +=
-                    quantidade;
-            }
+        if (item.estado === "GOIAS") {
+            dados[
+                item.cidade === "GOIANIA"
+                    ? "Goiânia"
+                    : "Outras cidades GO"
+            ] += item.quantidade;
         }
     });
 
-    destruirGrafico(
-        graficoBateriasCidades
+    criarOuAtualizarGrafico(
+        "graficoBateriasCidades",
+        {
+            type: "bar",
+
+            data: {
+                labels:
+                    Object.keys(dados),
+
+                datasets: [{
+                    label:
+                        "Quantidade de baterias",
+
+                    data:
+                        Object.values(dados),
+
+                    backgroundColor:
+                        "#ef233c",
+
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor:
+                        "#ff4d5f",
+
+                    borderWidth: 1,
+                    borderRadius: 24,
+                    borderSkipped: false,
+                    maxBarThickness: 65
+                }]
+            },
+
+            options:
+                opcoesGraficoBarras()
+        }
     );
-
-    graficoBateriasCidades =
-        new Chart(
-            document.getElementById(
-                "graficoBateriasCidades"
-            ),
-            {
-                type: "bar",
-
-                data: {
-                    labels:
-                        Object.keys(dados),
-
-                    datasets: [
-                        {
-                            label:
-                                "Quantidade de baterias",
-
-                            data:
-                                Object.values(dados),
-
-                            backgroundColor:
-                                "#ef233c",
-
-                            borderColor:
-                                "#ff4d5f",
-
-                            borderWidth: 1,
-
-                            borderRadius: 24,
-
-                            borderSkipped:
-                                false,
-
-                            maxBarThickness: 65
-                        }
-                    ]
-                },
-
-                options:
-                    opcoesGraficoBarras()
-            }
-        );
 }
 
+function atualizarGraficosBateriasPorEstadoCidade(
+    linhas
+) {
+    const bahia = {
+        "Salvador": 0,
+        "Camaçari": 0,
+        "Simões Filho": 0,
+        "Vera Cruz": 0,
+        "Outras": 0
+    };
 
+    const goias = {
+        "Goiânia": 0,
+        "Outras": 0
+    };
+
+    const saoPaulo = {
+        "Guarulhos": 0,
+        "Outras": 0
+    };
+
+    linhas.forEach(item => {
+        if (item.estado === "BAHIA") {
+            const mapa = {
+                "SALVADOR": "Salvador",
+                "CAMACARI": "Camaçari",
+                "SIMOES FILHO":
+                    "Simões Filho",
+                "VERA CRUZ": "Vera Cruz"
+            };
+
+            bahia[
+                mapa[item.cidade] ||
+                "Outras"
+            ] += item.quantidade;
+        }
+
+        if (item.estado === "GOIAS") {
+            goias[
+                item.cidade === "GOIANIA"
+                    ? "Goiânia"
+                    : "Outras"
+            ] += item.quantidade;
+        }
+
+        if (
+            item.estado === "SAO PAULO"
+        ) {
+            saoPaulo[
+                item.cidade === "GUARULHOS"
+                    ? "Guarulhos"
+                    : "Outras"
+            ] += item.quantidade;
+        }
+    });
+
+    criarGraficoOpcional(
+        "graficoBateriasCidadesBahia",
+        bahia,
+        "#f35810"
+    );
+
+    criarGraficoOpcional(
+        "graficoBateriasCidadesGoias",
+        goias,
+        "#c5b916"
+    );
+
+    criarGraficoOpcional(
+        "graficoBateriasCidadesSaoPaulo",
+        saoPaulo,
+        "#ef233c"
+    );
+}
+
+function criarGraficoOpcional(
+    canvasId,
+    dados,
+    cor
+) {
+    if (
+        !document.getElementById(
+            canvasId
+        )
+    ) {
+        return;
+    }
+
+    criarOuAtualizarGrafico(
+        canvasId,
+        {
+            type: "bar",
+
+            data: {
+                labels:
+                    Object.keys(dados),
+
+                datasets: [{
+                    data:
+                        Object.values(dados),
+
+                    backgroundColor: cor,
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor: cor,
+                    borderWidth: 1,
+
+                    borderRadius: 20,
+                    borderSkipped: false,
+                    maxBarThickness: 60
+                }]
+            },
+
+            options:
+                opcoesGraficoBarras()
+        }
+    );
+}
+
+function atualizarTop10SitesBahia(contexto) {
+    const canvasId =
+        "graficoTop10SitesBahia";
+
+    if (
+        !document.getElementById(
+            canvasId
+        )
+    ) {
+        return;
+    }
+
+    const totais =
+        Object.create(null);
+
+    contexto.linhasAtual.forEach(
+        item => {
+            if (
+                item.estado !== "BAHIA" ||
+                !ehBateria(item) ||
+                !item.site
+            ) {
+                return;
+            }
+
+            totais[item.site] =
+                (totais[item.site] || 0) +
+                item.quantidade;
+        }
+    );
+
+    const top10 =
+        Object.entries(totais)
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            )
+            .slice(0, 10);
+
+    criarOuAtualizarGrafico(
+        canvasId,
+        {
+            type: "bar",
+
+            data: {
+                labels:
+                    top10.map(
+                        item => item[0]
+                    ),
+
+                datasets: [{
+                    label:
+                        "Quantidade de baterias",
+
+                    data:
+                        top10.map(
+                            item => item[1]
+                        ),
+
+                    backgroundColor:
+                        "#f35810",
+
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor:
+                        "#f35810",
+
+                    borderWidth: 1,
+
+                    hoverBorderColor:
+                        "#ffffff",
+
+                    hoverBorderWidth: 2,
+
+                    borderRadius: 20,
+                    borderSkipped: false,
+                    maxBarThickness: 35
+                }]
+            },
+
+            options:
+                opcoesGraficoHorizontal()
+        }
+    );
+}
 /* =========================================================
-   CABOS — ESTADO DE SÃO PAULO
+   CABOS — SÃO PAULO
 ========================================================= */
 
 function atualizarBlocoCabos(contexto) {
+    const filtrarCabosGuarulhos =
+        linhas =>
+            linhas.filter(
+                item =>
+                    item.estado === "SAO PAULO" &&
+                    item.cidade === "GUARULHOS" &&
+                    item.tipo.includes("CABO")
+            );
+
     const cabosAtual =
-        filtrarCabosSaoPaulo(
+        filtrarCabosGuarulhos(
             contexto.linhasAtual
         );
 
     const cabosAnterior =
-        filtrarCabosSaoPaulo(
+        filtrarCabosGuarulhos(
             contexto.linhasAnterior
         );
 
     const totalAtual =
-        somarQuantidade(cabosAtual);
+        somarQuantidadeProcessada(
+            cabosAtual
+        );
 
     const totalAnterior =
-        somarQuantidade(cabosAnterior);
+        somarQuantidadeProcessada(
+            cabosAnterior
+        );
 
     const valorAtual =
-        somarValor(cabosAtual);
+        somarValorProcessada(
+            cabosAtual
+        );
 
     const valorAnterior =
-        somarValor(cabosAnterior);
+        somarValorProcessada(
+            cabosAnterior
+        );
 
     const ocorrenciasAtual =
-        contarIdsUnicos(cabosAtual);
+        contarIdsProcessados(
+            cabosAtual
+        );
 
     const ocorrenciasAnterior =
-        contarIdsUnicos(cabosAnterior);
+        contarIdsProcessados(
+            cabosAnterior
+        );
 
     alterarTexto(
         "cabosTotal",
@@ -1307,7 +1780,7 @@ function atualizarBlocoCabos(contexto) {
     alterarTexto(
         "cabosMediaSemanal",
         formatarNumero(
-            calcularMediaSemanal(
+            calcularMediaSemanalProcessada(
                 cabosAtual,
                 contexto.periodoAtual
             )
@@ -1346,129 +1819,173 @@ function atualizarBlocoCabos(contexto) {
 
     alterarTexto(
         "cabosPeriodoAnterior",
-        `Período anterior: ` +
-        `${formatarNumero(totalAnterior)}`
+        `Período anterior: ${formatarNumero(totalAnterior)}`
     );
 
     alterarTexto(
         "cabosValorAnterior",
-        `Período anterior: ` +
-        `${formatarMoeda(valorAnterior)}`
+        `Período anterior: ${formatarMoeda(valorAnterior)}`
     );
 
     alterarTexto(
         "cabosOcorrenciasAnterior",
-        `Período anterior: ` +
-        `${formatarNumero(
-            ocorrenciasAnterior
-        )}`
+        `Período anterior: ${formatarNumero(ocorrenciasAnterior)}`
     );
 
-    criarGraficoCabosPorCidade(
-        cabosAtual
+    atualizarGraficoCabosBateriasGuarulhos(
+        contexto.linhasAtual
+    );
+
+    atualizarTop5BairrosCabosGuarulhos(
+        contexto.linhasAtual
     );
 }
 
-
-function filtrarCabosSaoPaulo(
+function atualizarGraficoCabosBateriasGuarulhos(
     linhas
 ) {
-    return linhas.filter(linha => {
-        const tipo =
-            obterTipoPrejuizo(linha);
+    let totalCabos = 0;
+    let totalBaterias = 0;
 
-        const estado =
-            obterEstado(linha);
+    linhas.forEach(item => {
+        if (
+            item.estado !== "SAO PAULO" ||
+            item.cidade !== "GUARULHOS"
+        ) {
+            return;
+        }
 
-        const ehCabo =
-            tipo === "CABO" ||
-            tipo === "CABOS" ||
-            tipo.includes("CABO");
+        if (item.tipo.includes("CABO")) {
+            totalCabos += item.quantidade;
+        }
 
-        return (
-            ehCabo &&
-            estado === "SAO PAULO"
-        );
-    });
-}
-
-
-function criarGraficoCabosPorCidade(
-    linhas
-) {
-    const dados = {
-        "Guarulhos": 0,
-        "Outras cidades SP": 0
-    };
-
-    linhas.forEach(linha => {
-        const cidade =
-            normalizarTexto(
-                obterCampo(
-                    linha,
-                    ["Cidade"]
-                )
-            );
-
-        const quantidade =
-            obterQuantidade(linha);
-
-        if (cidade === "GUARULHOS") {
-            dados["Guarulhos"] +=
-                quantidade;
-        } else {
-            dados["Outras cidades SP"] +=
-                quantidade;
+        if (item.tipo.includes("BATERIA")) {
+            totalBaterias += item.quantidade;
         }
     });
 
-    destruirGrafico(
-        graficoCabosCidades
+    criarOuAtualizarGrafico(
+        "graficoCabosBateriasGuarulhos",
+        {
+            type: "bar",
+
+            data: {
+                labels: [
+                    "Cabos",
+                    "Baterias"
+                ],
+
+                datasets: [{
+                    label: "Quantidade furtada",
+
+                    data: [
+                        totalCabos,
+                        totalBaterias
+                    ],
+
+                    backgroundColor: [
+                        "#8b5cf6",
+                        "#f35810"
+                    ],
+
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor: [
+                        "#a879ff",
+                        "#fb7a3c"
+                    ],
+
+                    borderWidth: 1,
+                    hoverBorderColor: "#ffffff",
+                    hoverBorderWidth: 2,
+
+                    borderRadius: 24,
+                    borderSkipped: false,
+                    maxBarThickness: 100
+                }]
+            },
+
+            options:
+                opcoesGraficoBarras()
+        }
     );
-
-    graficoCabosCidades =
-        new Chart(
-            document.getElementById(
-                "graficoCabosCidades"
-            ),
-            {
-                type: "bar",
-
-                data: {
-                    labels:
-                        Object.keys(dados),
-
-                    datasets: [
-                        {
-                            label:
-                                "Quantidade de cabos",
-
-                            data:
-                                Object.values(dados),
-
-                            backgroundColor:
-                                "#8b5cf6",
-
-                            borderColor:
-                                "#a879ff",
-
-                            borderWidth: 1,
-
-                            borderRadius: 24,
-
-                            borderSkipped:
-                                false,
-
-                            maxBarThickness: 100
-                        }
-                    ]
-                },
-
-                options:
-                    opcoesGraficoBarras()
-            }
-        );
 }
+
+function atualizarTop5BairrosCabosGuarulhos(
+    linhas
+) {
+    const totaisPorBairro =
+        Object.create(null);
+
+    linhas.forEach(item => {
+        if (
+            item.estado !== "SAO PAULO" ||
+            item.cidade !== "GUARULHOS" ||
+            !item.tipo.includes("CABO") ||
+            !item.bairro
+        ) {
+            return;
+        }
+
+        totaisPorBairro[item.bairro] =
+            (totaisPorBairro[item.bairro] || 0) +
+            item.quantidade;
+    });
+
+    const top5 =
+        Object.entries(totaisPorBairro)
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            )
+            .slice(0, 5);
+
+    criarOuAtualizarGrafico(
+        "graficoTop5BairrosCabosGuarulhos",
+        {
+            type: "bar",
+
+            data: {
+                labels:
+                    top5.map(
+                        item => item[0]
+                    ),
+
+                datasets: [{
+                    label:
+                        "Quantidade de cabos",
+
+                    data:
+                        top5.map(
+                            item => item[1]
+                        ),
+
+                    backgroundColor:
+                        "#8b5cf6",
+
+                    hoverBackgroundColor:
+                        "#d1d5db",
+
+                    borderColor:
+                        "#a879ff",
+
+                    borderWidth: 1,
+                    hoverBorderColor: "#ffffff",
+                    hoverBorderWidth: 2,
+
+                    borderRadius: 20,
+                    borderSkipped: false,
+                    maxBarThickness: 45
+                }]
+            },
+
+            options:
+                opcoesGraficoHorizontal()
+        }
+    );
+}
+    
 
 
 /* =========================================================
@@ -1478,23 +1995,25 @@ function criarGraficoCabosPorCidade(
 function atualizarOcorrenciasEstados(
     contexto
 ) {
-    const linhasAtual =
-        filtrarEstadosMonitorados(
-            contexto.linhasAtual
+    const atual =
+        contexto.linhasAtual.filter(
+            item =>
+                estadosMonitorados
+                    .includes(item.estado)
         );
 
-    const linhasAnterior =
-        filtrarEstadosMonitorados(
-            contexto.linhasAnterior
+    const anterior =
+        contexto.linhasAnterior.filter(
+            item =>
+                estadosMonitorados
+                    .includes(item.estado)
         );
 
     const totalAtual =
-        contarIdsUnicos(linhasAtual);
+        contarIdsProcessados(atual);
 
     const totalAnterior =
-        contarIdsUnicos(
-            linhasAnterior
-        );
+        contarIdsProcessados(anterior);
 
     alterarTexto(
         "ocorrenciasTotal",
@@ -1515,81 +2034,52 @@ function atualizarOcorrenciasEstados(
 
     const valores =
         estadosMonitorados.map(
-            estado => {
-                const linhasEstado =
-                    linhasAtual.filter(
-                        linha =>
-                            obterEstado(linha) ===
-                            estado
-                    );
-
-                return contarIdsUnicos(
-                    linhasEstado
-                );
-            }
+            estado =>
+                contarIdsProcessados(
+                    atual.filter(
+                        item =>
+                            item.estado === estado
+                    )
+                )
         );
 
-    destruirGrafico(
-        graficoOcorrenciasEstados
-    );
+    criarOuAtualizarGrafico(
+        "graficoOcorrenciasEstados",
+        {
+            type: "bar",
 
-    graficoOcorrenciasEstados =
-        new Chart(
-            document.getElementById(
-                "graficoOcorrenciasEstados"
-            ),
-            {
-                type: "bar",
+            data: {
+                labels: [
+                    "Bahia",
+                    "Goiás",
+                    "São Paulo"
+                ],
 
-                data: {
-                    labels: [
-                        "Bahia",
-                        "Goiás",
-                        "São Paulo"
-                    ],
+                datasets: [{
+                    label: "Ocorrências",
+                    data: valores,
 
-                    datasets: [
-                        {
-                            label:
-                                "Ocorrências",
+                    backgroundColor:
+                        "#22c55e",
 
-                            data: valores,
+                    hoverBackgroundColor:
+                        "#d1d5db",
 
-                            backgroundColor:
-                                "#22c55e",
+                    borderColor:
+                        "#4ade80",
 
-                            borderColor:
-                                "#4ade80",
+                    borderWidth: 1,
+                    borderRadius: 24,
+                    borderSkipped: false,
+                    maxBarThickness: 85
+                }]
+            },
 
-                            borderWidth: 1,
-
-                            borderRadius: 24,
-
-                            borderSkipped:
-                                false,
-
-                            maxBarThickness: 85
-                        }
-                    ]
-                },
-
-                options:
-                    opcoesGraficoBarras()
-            }
-        );
-}
-
-
-function filtrarEstadosMonitorados(
-    linhas
-) {
-    return linhas.filter(linha =>
-        estadosMonitorados.includes(
-            obterEstado(linha)
-        )
+            options:
+                opcoesGraficoBarras()
+        }
     );
 }
-
 
 /* =========================================================
    RESUMO FINANCEIRO
@@ -1598,48 +2088,52 @@ function filtrarEstadosMonitorados(
 function atualizarResumoFinanceiro(
     contexto
 ) {
-    const linhasAtual =
-        filtrarEstadosMonitorados(
-            contexto.linhasAtual
+    const atual =
+        contexto.linhasAtual.filter(
+            item =>
+                estadosMonitorados
+                    .includes(item.estado)
         );
 
-    const linhasAnterior =
-        filtrarEstadosMonitorados(
-            contexto.linhasAnterior
+    const anterior =
+        contexto.linhasAnterior.filter(
+            item =>
+                estadosMonitorados
+                    .includes(item.estado)
         );
 
-    atualizarFinanceiroEstado(
+    atualizarFinanceiroEstadoProcessado(
         "BAHIA",
         "valorBahia",
         "valorBahiaVariacao",
         "valorBahiaAnterior",
-        linhasAtual,
-        linhasAnterior
+        atual,
+        anterior
     );
 
-    atualizarFinanceiroEstado(
+    atualizarFinanceiroEstadoProcessado(
         "GOIAS",
         "valorGoias",
         "valorGoiasVariacao",
         "valorGoiasAnterior",
-        linhasAtual,
-        linhasAnterior
+        atual,
+        anterior
     );
 
-    atualizarFinanceiroEstado(
+    atualizarFinanceiroEstadoProcessado(
         "SAO PAULO",
         "valorSaoPaulo",
         "valorSaoPauloVariacao",
         "valorSaoPauloAnterior",
-        linhasAtual,
-        linhasAnterior
+        atual,
+        anterior
     );
 
     const totalAtual =
-        somarValor(linhasAtual);
+        somarValorProcessada(atual);
 
     const totalAnterior =
-        somarValor(linhasAnterior);
+        somarValorProcessada(anterior);
 
     alterarTexto(
         "resumoValor",
@@ -1659,60 +2153,117 @@ function atualizarResumoFinanceiro(
     );
 }
 
-
-function atualizarFinanceiroEstado(
+function atualizarFinanceiroEstadoProcessado(
     estado,
     idValor,
     idVariacao,
     idAnterior,
-    linhasAtual,
-    linhasAnterior
+    atual,
+    anterior
 ) {
-    const atual =
-        somarValor(
-            linhasAtual.filter(
-                linha =>
-                    obterEstado(linha) ===
-                    estado
+    const valorAtual =
+        somarValorProcessada(
+            atual.filter(
+                item =>
+                    item.estado === estado
             )
         );
 
-    const anterior =
-        somarValor(
-            linhasAnterior.filter(
-                linha =>
-                    obterEstado(linha) ===
-                    estado
+    const valorAnterior =
+        somarValorProcessada(
+            anterior.filter(
+                item =>
+                    item.estado === estado
             )
         );
 
     alterarTexto(
         idValor,
-        formatarMoeda(atual)
+        formatarMoeda(valorAtual)
     );
 
     atualizarVariacao(
         idVariacao,
-        atual,
-        anterior
+        valorAtual,
+        valorAnterior
     );
 
     alterarTexto(
         idAnterior,
         `Período anterior: ` +
-        `${formatarMoeda(anterior)}`
+        `${formatarMoeda(valorAnterior)}`
     );
 }
 
-
 /* =========================================================
-   CONFIGURAÇÃO DOS GRÁFICOS
+   CRIAR OU ATUALIZAR GRÁFICOS
 ========================================================= */
+
+function criarOuAtualizarGrafico(
+    canvasId,
+    configuracao
+) {
+    const canvas =
+        document.getElementById(
+            canvasId
+        );
+
+    if (!canvas) return;
+
+    const existente =
+        graficos[canvasId] ||
+        Chart.getChart(canvas);
+
+    if (
+        existente &&
+        existente.config.type ===
+            configuracao.type
+    ) {
+        existente.data.labels =
+            configuracao.data.labels;
+
+        existente.data.datasets =
+            configuracao.data.datasets;
+
+        existente.options =
+            configuracao.options;
+
+        existente.update("none");
+
+        graficos[canvasId] =
+            existente;
+
+        return;
+    }
+
+    if (existente) {
+        existente.destroy();
+    }
+
+    graficos[canvasId] =
+        new Chart(
+            canvas,
+            configuracao
+        );
+}
 
 function opcoesGraficoBarras() {
     return {
         responsive: true,
         maintainAspectRatio: false,
+
+        animation:
+            window.innerWidth <= 700
+                ? false
+                : {
+                    duration: 450,
+                    easing: "easeOutQuart"
+                },
+
+        interaction: {
+            mode: "nearest",
+            intersect: true
+        },
 
         layout: {
             padding: {
@@ -1745,6 +2296,7 @@ function opcoesGraficoBarras() {
             x: {
                 ticks: {
                     color: "#d1d5db",
+
                     font: {
                         size: 12
                     }
@@ -1764,7 +2316,8 @@ function opcoesGraficoBarras() {
                 beginAtZero: true,
 
                 ticks: {
-                    color: "#9ca3af"
+                    color: "#9ca3af",
+                    precision: 0
                 },
 
                 grid: {
@@ -1780,136 +2333,105 @@ function opcoesGraficoBarras() {
     };
 }
 
+function opcoesGraficoHorizontal() {
+    return {
+        ...opcoesGraficoBarras(),
 
-function destruirGrafico(grafico) {
-    if (grafico) {
-        grafico.destroy();
-    }
+        indexAxis: "y",
+
+        scales: {
+            x: {
+                beginAtZero: true,
+
+                ticks: {
+                    color: "#9ca3af",
+                    precision: 0
+                },
+
+                grid: {
+                    color:
+                        "rgba(148, 163, 184, 0.12)"
+                }
+            },
+
+            y: {
+                ticks: {
+                    color: "#d1d5db"
+                },
+
+                grid: {
+                    display: false
+                }
+            }
+        }
+    };
 }
-
 
 /* =========================================================
    CÁLCULOS
 ========================================================= */
 
-function somarQuantidade(linhas) {
+function somarQuantidadeProcessada(
+    linhas
+) {
     return linhas.reduce(
-        (total, linha) =>
-            total + obterQuantidade(linha),
+        (total, item) =>
+            total + item.quantidade,
         0
     );
 }
 
-
-function somarValor(linhas) {
+function somarValorProcessada(
+    linhas
+) {
     return linhas.reduce(
-        (total, linha) =>
-            total + obterValor(linha),
+        (total, item) =>
+            total + item.valor,
         0
     );
 }
 
-
-function obterQuantidade(linha) {
-    return converterNumero(
-        obterCampo(
-            linha,
-            ["Quantidade"]
-        )
-    );
-}
-
-
-function obterValor(linha) {
-    return converterNumero(
-        obterCampo(
-            linha,
-            [
-                "Valor Total",
-                "Valor"
-            ]
-        )
-    );
-}
-
-
-function obterEstado(linha) {
-    return normalizarTexto(
-        obterCampo(linha, ["Estado"])
-    );
-}
-
-
-function obterTipoPrejuizo(linha) {
-    return normalizarTexto(
-        obterCampo(
-            linha,
-            [
-                "Item de Prejuízo / Recuperação",
-                "Tipo de Prejuízo / Recuperação",
-                "Tipos de Prejuízo / Recuperação"
-            ]
-        )
-    );
-}
-
-
-function contarIdsUnicos(linhas) {
+function contarIdsProcessados(
+    linhas
+) {
     const ids = new Set();
 
-    linhas.forEach(linha => {
-        const id =
-            limparTexto(
-                obterCampo(
-                    linha,
-                    [
-                        "Id Ocorrência",
-                        "ID Ocorrência",
-                        "Id"
-                    ]
-                )
-            );
-
-        if (id !== "") {
-            ids.add(id);
+    linhas.forEach(item => {
+        if (item.id) {
+            ids.add(item.id);
         }
     });
 
     return ids.size;
 }
 
-
-function calcularMediaSemanal(
+function calcularMediaSemanalProcessada(
     linhas,
     intervalo
 ) {
-    const milissegundosDia =
-        1000 * 60 * 60 * 24;
-
     const dias =
         Math.max(
             1,
+
             Math.round(
                 (
                     intervalo.fim -
                     intervalo.inicio
                 ) /
-                milissegundosDia
+                86400000
             ) + 1
         );
 
-    const semanas =
+    return Math.round(
+        somarQuantidadeProcessada(
+            linhas
+        ) /
         Math.max(
             1,
             dias / 7
-        );
-
-    return Math.round(
-        somarQuantidade(linhas) /
-        semanas
+        )
     );
 }
-
 
 function calcularVariacao(
     atual,
@@ -1928,13 +2450,6 @@ function calcularVariacao(
         anterior
     ) * 100;
 }
-
-
-/* =========================================================
-   VARIAÇÃO
-   AUMENTO = VERMELHO
-   REDUÇÃO = VERDE
-========================================================= */
 
 function atualizarVariacao(
     id,
@@ -1967,10 +2482,7 @@ function atualizarVariacao(
             "variacao-positiva"
         );
 
-        return;
-    }
-
-    if (percentual < 0) {
+    } else if (percentual < 0) {
         elemento.textContent =
             `▼ ${formatarPercentual(
                 Math.abs(percentual)
@@ -1980,39 +2492,24 @@ function atualizarVariacao(
             "variacao-negativa"
         );
 
-        return;
+    } else {
+        elemento.textContent =
+            "— 0,0%";
     }
-
-    elemento.textContent = "— 0,0%";
 }
-
 
 /* =========================================================
-   DATAS
+   DATAS E NÚMEROS
 ========================================================= */
-
-function obterDataOcorrencia(linha) {
-    const valor =
-        obterCampo(
-            linha,
-            [
-                "Data da Ocorrência",
-                "Data da Ocorrencia",
-                "DATA DA OCORRÊNCIA",
-                "DATA DA OCORRENCIA"
-            ]
-        );
-
-    return converterData(valor);
-}
-
 
 function converterData(valor) {
     if (!valor) return null;
 
     if (
         valor instanceof Date &&
-        !Number.isNaN(valor.getTime())
+        !Number.isNaN(
+            valor.getTime()
+        )
     ) {
         return new Date(valor);
     }
@@ -2040,99 +2537,28 @@ function converterData(valor) {
     const texto =
         limparTexto(valor);
 
-    const dataBrasileira =
+    const brasileira =
         texto.match(
             /^(\d{1,2})\/(\d{1,2})\/(\d{4})/
         );
 
-    if (dataBrasileira) {
+    if (brasileira) {
         return new Date(
-            Number(dataBrasileira[3]),
-            Number(dataBrasileira[2]) - 1,
-            Number(dataBrasileira[1])
+            Number(brasileira[3]),
+            Number(brasileira[2]) - 1,
+            Number(brasileira[1])
         );
     }
 
-    const dataIso =
+    const iso =
         new Date(texto);
 
-    if (
-        !Number.isNaN(
-            dataIso.getTime()
-        )
-    ) {
-        return dataIso;
-    }
-
-    return null;
+    return Number.isNaN(
+        iso.getTime()
+    )
+        ? null
+        : iso;
 }
-
-
-function encontrarDataReferencia(base) {
-    const datas = base
-        .map(obterDataOcorrencia)
-        .filter(data =>
-            data &&
-            !Number.isNaN(
-                data.getTime()
-            )
-        );
-
-    if (datas.length === 0) {
-        return new Date();
-    }
-
-    return new Date(
-        Math.max(
-            ...datas.map(data =>
-                data.getTime()
-            )
-        )
-    );
-}
-
-
-/* =========================================================
-   ACESSO AOS CAMPOS
-========================================================= */
-
-function obterCampo(
-    linha,
-    nomesPossiveis
-) {
-    const chaves =
-        Object.keys(linha);
-
-    for (
-        const nomePossivel
-        of nomesPossiveis
-    ) {
-        const nomeNormalizado =
-            normalizarCabecalho(
-                nomePossivel
-            );
-
-        const chaveEncontrada =
-            chaves.find(chave =>
-                normalizarCabecalho(
-                    chave
-                ) === nomeNormalizado
-            );
-
-        if (chaveEncontrada) {
-            return linha[
-                chaveEncontrada
-            ];
-        }
-    }
-
-    return "";
-}
-
-
-/* =========================================================
-   CONVERSÃO E FORMATAÇÃO
-========================================================= */
 
 function converterNumero(valor) {
     if (
@@ -2159,9 +2585,11 @@ function converterNumero(valor) {
         texto.includes(".") &&
         texto.includes(",")
     ) {
-        texto = texto
-            .replace(/\./g, "")
-            .replace(",", ".");
+        texto =
+            texto
+                .replace(/\./g, "")
+                .replace(",", ".");
+
     } else if (
         texto.includes(",")
     ) {
@@ -2177,7 +2605,6 @@ function converterNumero(valor) {
         : 0;
 }
 
-
 function formatarNumero(valor) {
     return Number(valor || 0)
         .toLocaleString(
@@ -2187,7 +2614,6 @@ function formatarNumero(valor) {
             }
         );
 }
-
 
 function formatarMoeda(valor) {
     return Number(valor || 0)
@@ -2199,7 +2625,6 @@ function formatarMoeda(valor) {
             }
         );
 }
-
 
 function formatarPercentual(valor) {
     return (
@@ -2215,13 +2640,11 @@ function formatarPercentual(valor) {
     );
 }
 
-
 function formatarDataCurta(data) {
     return data.toLocaleDateString(
         "pt-BR"
     );
 }
-
 
 function formatarMesAno(data) {
     const texto =
@@ -2233,11 +2656,12 @@ function formatarMesAno(data) {
             }
         );
 
-    return texto.charAt(0)
-        .toUpperCase() +
-        texto.slice(1);
+    return (
+        texto.charAt(0)
+            .toUpperCase() +
+        texto.slice(1)
+    );
 }
-
 
 function alterarTexto(id, valor) {
     const elemento =
@@ -2248,13 +2672,12 @@ function alterarTexto(id, valor) {
     }
 }
 
-
 /* =========================================================
    NORMALIZAÇÃO
 ========================================================= */
 
 function normalizarCabecalho(texto) {
-    let normalizado =
+    const normalizado =
         limparTexto(texto)
             .normalize("NFD")
             .replace(
@@ -2264,20 +2687,13 @@ function normalizarCabecalho(texto) {
             .replace(/\s+/g, " ")
             .toLowerCase();
 
-    if (
+    return (
         aliasesCabecalhos[
             normalizado
-        ]
-    ) {
-        normalizado =
-            aliasesCabecalhos[
-                normalizado
-            ];
-    }
-
-    return normalizado;
+        ] ||
+        normalizado
+    );
 }
-
 
 function normalizarTexto(texto) {
     return limparTexto(texto)
@@ -2290,7 +2706,6 @@ function normalizarTexto(texto) {
         .toUpperCase();
 }
 
-
 function limparTexto(texto) {
     return String(texto ?? "")
         .replace(/\u00a0/g, " ")
@@ -2298,351 +2713,54 @@ function limparTexto(texto) {
         .trim();
 }
 
-let graficoBateriasMensalBahia = null;
-
-function criarGraficoBateriasMensalBahia(linhas){
-
-    const meses = [
-        "Jan","Fev","Mar","Abr","Mai","Jun",
-        "Jul","Ago","Set","Out","Nov","Dez"
-    ];
-
-    const valores = new Array(12).fill(0);
-
-    linhas.forEach(linha=>{
-
-        const estado = obterEstado(linha);
-
-        if (estado !== "BAHIA") return;
-
-        const tipo = obterTipoPrejuizo(linha);
-
-        if(!tipo.includes("BATERIA")) return;
-
-        const data = obterDataOcorrencia(linha);
-
-        if(!data) return;
-
-        valores[data.getMonth()] += obterQuantidade(linha);
-
-    });
-
-    if(graficoBateriasMensalBahia){
-        graficoBateriasMensalBahia.destroy();
-    }
-
-    graficoBateriasMensalBahia = new Chart(
-
-        document.getElementById("graficoBateriasMensalBahia"),
-
-        {
-
-            type:"bar",
-
-            data:{
-
-                labels:meses,
-
-                datasets: [{
-                    data: valores,
-
-                    backgroundColor: "#f35810",
-                    hoverBackgroundColor: "#d1d5db",
-
-                    borderColor: "#f35810",
-                    borderWidth: 1,
-
-                    hoverBorderColor: "#ffffff",
-                    hoverBorderWidth: 2,
-
-                    borderRadius: 20,
-                    borderSkipped: false,
-                    maxBarThickness: 45
-                }]
-
-            },
-
-            options:opcoesGraficoBarras()
-
-        }
-
-    );
-
-}
-
-function criarGraficoBateriasMensalGoias(linhas) {
-    let labels = [];
-    let valores = [];
-
-    const linhasGoias = linhas.filter(linha => {
-        const estado = obterEstado(linha);
-        const tipo = obterTipoPrejuizo(linha);
-
-        return (
-            estado === "GOIAS" &&
-            tipo.includes("BATERIA")
-        );
-    });
-
-    if (periodoSelecionado === "ano") {
-        labels = [
-            "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-            "Jul", "Ago", "Set", "Out", "Nov", "Dez"
-        ];
-
-        valores = new Array(12).fill(0);
-
-        const anoReferencia =
-            dataReferencia.getFullYear();
-
-        linhasGoias.forEach(linha => {
-            const data = obterDataOcorrencia(linha);
-
-            if (!data) return;
-            if (data.getFullYear() !== anoReferencia) return;
-
-            valores[data.getMonth()] +=
-                obterQuantidade(linha);
-        });
-    }
-
-    if (periodoSelecionado === "mes") {
-        const contexto =
-            criarContextoPeriodo(baseSIGO2026);
-
-        const dadosMes =
-            agruparPorSemanasDoMes(
-                linhasGoias,
-                contexto.referencia
-            );
-
-        labels = dadosMes.labels;
-        valores = dadosMes.valores;
-    }
-
-    if (periodoSelecionado === "semana") {
-        const contexto =
-            criarContextoPeriodo(baseSIGO2026);
-
-        const diasSemana = [
-            "Seg", "Ter", "Qua",
-            "Qui", "Sex", "Sáb", "Dom"
-        ];
-
-        labels = diasSemana;
-        valores = new Array(7).fill(0);
-
-        const linhasSemana =
-            filtrarPorIntervalo(
-                linhasGoias,
-                contexto.periodoAtual.inicio,
-                contexto.periodoAtual.fim
-            );
-
-        linhasSemana.forEach(linha => {
-            const data =
-                obterDataOcorrencia(linha);
-
-            if (!data) return;
-
-            const dia =
-                data.getDay() === 0
-                    ? 6
-                    : data.getDay() - 1;
-
-            valores[dia] +=
-                obterQuantidade(linha);
-        });
-    }
-
-    if (graficoBateriasMensalGoias) {
-        graficoBateriasMensalGoias.destroy();
-    }
-
-    graficoBateriasMensalGoias = new Chart(
-        document.getElementById(
-            "graficoBateriasMensalGoias"
-        ),
-        {
-            type: "bar",
-
-            data: {
-                labels,
-
-                datasets: [{
-                    data: valores,
-
-                    backgroundColor: "#c5b916",
-                    hoverBackgroundColor: "#d1d5db",
-
-                    borderColor: "#c5b916",
-                    borderWidth: 1,
-
-                    hoverBorderColor: "#ffffff",
-                    hoverBorderWidth: 2,
-
-                    borderRadius: 20,
-                    borderSkipped: false,
-                    maxBarThickness: 45
-                }]
-            },
-
-            options: opcoesGraficoBarras()
-        }
-    );
-}
-
-function criarGraficoTop10SitesBahia(linhas) {
-    const canvas = document.getElementById(
-        "graficoTop10SitesBahia"
-    );
-
-    if (!canvas) {
-        console.error(
-            "Canvas graficoTop10SitesBahia não encontrado no HTML."
-        );
-        return;
-    }
-
-    const totaisPorSite = {};
-
-    linhas.forEach(linha => {
-        const estado = obterEstado(linha);
-        const tipo = obterTipoPrejuizo(linha);
-
-        const site = limparTexto(
-            obterCampo(
-                linha,
-                [
-                    "Site/Loja",
-                    "Site / Loja"
-                ]
-            )
-        );
-
-        const quantidade =
-            obterQuantidade(linha);
-
-        if (estado !== "BAHIA") return;
-        if (!tipo.includes("BATERIA")) return;
-        if (site === "") return;
-
-        totaisPorSite[site] =
-            (totaisPorSite[site] || 0) +
-            quantidade;
-    });
-
-    const top10 = Object.entries(totaisPorSite)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-
-    const labels =
-        top10.map(item => item[0]);
-
-    const valores =
-        top10.map(item => item[1]);
-
-    if (graficoTop10SitesBahia) {
-        graficoTop10SitesBahia.destroy();
-    }
-
-    graficoTop10SitesBahia = new Chart(
-        canvas,
-        {
-            type: "bar",
-
-            data: {
-                labels,
-
-                datasets: [{
-                    label: "Quantidade de baterias",
-                    data: valores,
-
-                    backgroundColor: "#f35810",
-                    hoverBackgroundColor: "#d1d5db",
-
-                    borderColor: "#f35810",
-                    borderWidth: 1,
-
-                    hoverBorderColor: "#ffffff",
-                    hoverBorderWidth: 2,
-
-                    borderRadius: 20,
-                    borderSkipped: false,
-                    maxBarThickness: 35
-                }]
-            },
-
-            options: {
-                ...opcoesGraficoBarras(),
-
-                indexAxis: "y",
-
-                scales: {
-                    x: {
-                        beginAtZero: true,
-
-                        ticks: {
-                            color: "#9ca3af",
-                            precision: 0
-                        },
-
-                        grid: {
-                            color:
-                                "rgba(148, 163, 184, 0.12)"
-                        }
-                    },
-
-                    y: {
-                        ticks: {
-                            color: "#d1d5db"
-                        },
-
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        }
-    );
-}
-
 /* =========================================================
-   ANIMAÇÕES AO ROLAR A PÁGINA
+   ANIMAÇÕES AO ROLAR
+   NÃO RECALCULA OS GRÁFICOS
 ========================================================= */
 
 function configurarAnimacoesScroll() {
-    const cards = document.querySelectorAll(
-        ".indicador-card, .resumo-card, .dashboard-card"
-    );
-
-    const graficos = document.querySelectorAll(
-        ".grafico-painel"
-    );
-
-    const blocos = document.querySelectorAll(
-        ".importacao-sigo, .periodo-analise, .titulo-bloco"
-    );
-
-    cards.forEach((card, indice) => {
-        card.classList.add("animar-scroll");
-
-        if (indice % 2 === 0) {
-            card.classList.add("entrar-esquerda");
-        } else {
-            card.classList.add("entrar-direita");
-        }
-    });
-
-    graficos.forEach((grafico, indice) => {
-        grafico.classList.add(
-            "animar-scroll",
-            indice % 2 === 0
-                ? "entrar-esquerda"
-                : "entrar-direita"
+    const cards =
+        document.querySelectorAll(
+            ".indicador-card, " +
+            ".resumo-card, " +
+            ".dashboard-card"
         );
-    });
+
+    const graficosPainel =
+        document.querySelectorAll(
+            ".grafico-painel"
+        );
+
+    const blocos =
+        document.querySelectorAll(
+            ".importacao-sigo, " +
+            ".periodo-analise, " +
+            ".titulo-bloco"
+        );
+
+    cards.forEach(
+        (card, indice) => {
+            card.classList.add(
+                "animar-scroll",
+
+                indice % 2 === 0
+                    ? "entrar-esquerda"
+                    : "entrar-direita"
+            );
+        }
+    );
+
+    graficosPainel.forEach(
+        (grafico, indice) => {
+            grafico.classList.add(
+                "animar-scroll",
+
+                indice % 2 === 0
+                    ? "entrar-esquerda"
+                    : "entrar-direita"
+            );
+        }
+    );
 
     blocos.forEach(bloco => {
         bloco.classList.add(
@@ -2651,43 +2769,33 @@ function configurarAnimacoesScroll() {
         );
     });
 
-    const observador = new IntersectionObserver(
-        entradas => {
-            entradas.forEach(entrada => {
-                if (!entrada.isIntersecting) return;
-
-                const elemento = entrada.target;
-
-                elemento.classList.add("visivel");
-
-                const canvas =
-                    elemento.querySelector("canvas");
-
-                if (canvas) {
-                    const grafico =
-                        Chart.getChart(canvas);
-
-                    if (grafico) {
-                        grafico.reset();
-
-                        setTimeout(() => {
-                            grafico.update();
-                        }, 180);
+    const observador =
+        new IntersectionObserver(
+            entradas => {
+                entradas.forEach(
+                    entrada => {
+                        entrada.target
+                            .classList.toggle(
+                                "visivel",
+                                entrada.isIntersecting
+                            );
                     }
-                }
-
-                observador.unobserve(elemento);
-            });
-        },
-        {
-            threshold: 0.15,
-            rootMargin: "0px 0px -40px 0px"
-        }
-    );
+                );
+            },
+            {
+                threshold: 0.08,
+                rootMargin:
+                    "80px 0px 80px 0px"
+            }
+        );
 
     document
-        .querySelectorAll(".animar-scroll")
+        .querySelectorAll(
+            ".animar-scroll"
+        )
         .forEach(elemento => {
-            observador.observe(elemento);
+            observador.observe(
+                elemento
+            );
         });
 }
