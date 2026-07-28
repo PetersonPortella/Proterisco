@@ -638,25 +638,115 @@ function atualizarWorkbook() {
         )
     ];
 
-    workbookAtualizado
-        .Sheets[nomeAba] =
-        XLSX.utils.aoa_to_sheet(
-            dados
-        );
+    workbookAtualizado.Sheets[nomeAba] =
+        XLSX.utils.aoa_to_sheet(dados);
 }
 
 salvarPlanilha.addEventListener(
     "click",
-    () => {
-        if (!workbookAtualizado) return;
+    async () => {
+        if (!workbookAtualizado) {
+            resultadoImportacao.textContent =
+                "A planilha atualizada ainda não está pronta.";
 
-        XLSX.writeFile(
-            workbookAtualizado,
-            "SIGO_2026_ATUALIZADA.xlsx"
-        );
+            return;
+        }
+
+        const textoOriginalBotao =
+            salvarPlanilha.textContent;
+
+        try {
+            salvarPlanilha.disabled = true;
+            salvarPlanilha.textContent =
+                "Salvando...";
+
+            const dadosExcel = XLSX.write(
+                workbookAtualizado,
+                {
+                    bookType: "xlsx",
+                    type: "array"
+                }
+            );
+
+            const arquivoExcel = new Blob(
+                [dadosExcel],
+                {
+                    type:
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                }
+            );
+
+            if ("showSaveFilePicker" in window) {
+                const destino =
+                    await window.showSaveFilePicker({
+                        id: "arquivo-mestre-sigo-2026",
+
+                        suggestedName:
+                            "SIGO_2026.xlsx",
+
+                        types: [
+                            {
+                                description:
+                                    "Planilha Excel",
+
+                                accept: {
+                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                                        [".xlsx"]
+                                }
+                            }
+                        ],
+
+                        excludeAcceptAllOption:
+                            true
+                    });
+
+                const gravador =
+                    await destino.createWritable();
+
+                await gravador.write(
+                    arquivoExcel
+                );
+
+                await gravador.close();
+
+                resultadoImportacao.textContent =
+                    "Planilha SIGO_2026.xlsx salva com sucesso.";
+
+                salvarPlanilha.textContent =
+                    "SIGO 2026 salva";
+
+                return;
+            }
+
+            XLSX.writeFile(
+                workbookAtualizado,
+                "SIGO_2026.xlsx"
+            );
+
+            resultadoImportacao.textContent =
+                "Arquivo SIGO_2026.xlsx salvo em Downloads.";
+
+            salvarPlanilha.textContent =
+                "SIGO 2026 salva";
+
+        } catch (erro) {
+            if (erro.name === "AbortError") {
+                resultadoImportacao.textContent =
+                    "Salvamento cancelado.";
+
+            } else {
+                console.error(erro);
+
+                resultadoImportacao.textContent =
+                    "Erro ao salvar a planilha.";
+            }
+
+            salvarPlanilha.disabled = false;
+            salvarPlanilha.textContent =
+                textoOriginalBotao;
+        }
     }
 );
-
 /* =========================================================
    BASE PROCESSADA — UMA ÚNICA VEZ
 ========================================================= */

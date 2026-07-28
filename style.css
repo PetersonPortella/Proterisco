@@ -938,7 +938,7 @@ main {
 
 .grade-indicadores .indicador-card:nth-child(4),
 .grade-financeiro .indicador-card:nth-child(4) {
-    transition-delay: 1.5s;
+    transition-delay: 0.50s;
 }
 
 /* No celular, movimento menor */
