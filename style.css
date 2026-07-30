@@ -17,10 +17,10 @@
     --vermelho: #ef233c;
     --vermelho-escuro: #991b1b;
 
-    --roxo: #1597d3;
-    --verde: #22c55e;
-    --azul: #2389ff;
-    --laranja: #f97316;
+    --roxo: #f87800;
+    --verde: #ff6600;
+    --azul: #d4a5a5;
+    --laranja: #b40000;
 }
 
 /* =========================================================
@@ -341,15 +341,15 @@ main {
 }
 
 .bloco-cabos {
-    border-color: rgba(36, 39, 203, 0.85);
+    border-color: rgb(239, 15, 15);
 }
 
 .bloco-ocorrencias {
-    border-color: rgba(34, 197, 94, 0.85);
+    border-color: rgba(197, 34, 34, 0.85);
 }
 
 .bloco-financeiro {
-    border-color: rgba(216, 98, 14, 0.85);
+    border-color: rgba(216, 14, 14, 0.85);
 }
 
 /* =========================================================
@@ -398,11 +398,11 @@ main {
 }
 
 .bloco-cabos .numero-bloco {
-    background: var(--roxo);
+    background: var(--vermelho);
 }
 
 .bloco-ocorrencias .numero-bloco {
-    background: var(--verde);
+    background: var(--vermelho);
 }
 
 .bloco-financeiro .numero-bloco {
@@ -474,7 +474,7 @@ main {
 .indicador-card strong {
     margin: 4px 0 12px;
 
-    color: #ffffff;
+    color: #cf1d1d;
     font-size: 30px;
     line-height: 1.15;
 }
@@ -501,20 +501,20 @@ main {
 
 .indicador-vermelho strong,
 .indicador-vermelho .indicador-variacao {
-    color: var(--vermelho);
+    color: #ec780c;
 }
 
 .indicador-roxo {
-    border-color: #0b26c2b3;
+    border-color: #fc0101;
 }
 
 .indicador-roxo strong,
 .indicador-roxo .indicador-variacao {
-    color: #1597d3;
+    color: #f7630edd;
 }
 
 .indicador-verde {
-    border-color: rgba(34, 197, 94, 0.7);
+    border-color: rgba(209, 5, 5, 0.882);
 }
 
 .indicador-verde strong,
@@ -523,12 +523,12 @@ main {
 }
 
 .indicador-laranja {
-    border-color: rgba(249, 115, 22, 0.7);
+    border-color: rgb(196, 0, 0);
 }
 
 .indicador-laranja strong,
 .indicador-laranja .indicador-variacao {
-    color: var(--laranja);
+    color: #f87800;
 }
 
 /* ALTA / QUEDA */

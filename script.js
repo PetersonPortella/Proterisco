@@ -16,7 +16,7 @@ function mostrarSecao(id) {
 ========================================================= */
 
 const caminhoPlanilhaMestra = "./dados/SIGO_2026.xlsx";
-const estadosMonitorados = ["BAHIA", "GOIAS", "SAO PAULO"];
+const estadosMonitorados = ["BA", "GO", "SP"];
 
 const aliasesCabecalhos = {
     "tipos de prejuizo / recuperacao": "item de prejuizo / recuperacao",
@@ -1203,8 +1203,8 @@ function atualizarBlocoBaterias(
             item =>
                 ehBateria(item) &&
                 (
-                    item.estado === "BAHIA" ||
-                    item.estado === "GOIAS"
+                    item.estado === "BA" ||
+                    item.estado === "GO"
                 )
         );
 
@@ -1213,8 +1213,8 @@ function atualizarBlocoBaterias(
             item =>
                 ehBateria(item) &&
                 (
-                    item.estado === "BAHIA" ||
-                    item.estado === "GOIAS"
+                    item.estado === "BA" ||
+                    item.estado === "GO"
                 )
         );
 
@@ -1318,13 +1318,13 @@ function atualizarBlocoBaterias(
     );
 
     atualizarGraficoPeriodoBaterias(
-        "BAHIA",
+        "BA",
         "graficoBateriasMensalBahia",
         "#f35810"
     );
 
     atualizarGraficoPeriodoBaterias(
-        "GOIAS",
+        "GO",
         "graficoBateriasMensalGoias",
         "#c5b916"
     );
@@ -1426,13 +1426,13 @@ function atualizarGraficoPeriodoBaterias(
 
                     backgroundColor: cor,
                     hoverBackgroundColor:
-                        "#d1d5db",
+                        "#b3a700",
 
                     borderColor: cor,
                     borderWidth: 1,
 
                     hoverBorderColor:
-                        "#ffffff",
+                        "#dabfbf",
 
                     hoverBorderWidth: 2,
 
@@ -1540,7 +1540,7 @@ function atualizarGraficoBateriasCidades(
     };
 
     linhas.forEach(item => {
-        if (item.estado === "BAHIA") {
+        if (item.estado === "BA") {
             const mapa = {
                 "SALVADOR": "Salvador",
                 "CAMACARI": "Camaçari",
@@ -1555,7 +1555,7 @@ function atualizarGraficoBateriasCidades(
             ] += item.quantidade;
         }
 
-        if (item.estado === "GOIAS") {
+        if (item.estado === "GO") {
             dados[
                 item.cidade === "GOIANIA"
                     ? "Goiânia"
@@ -1581,13 +1581,13 @@ function atualizarGraficoBateriasCidades(
                         Object.values(dados),
 
                     backgroundColor:
-                        "#ef233c",
+                        "#b10000",
 
                     hoverBackgroundColor:
                         "#d1d5db",
 
                     borderColor:
-                        "#ff4d5f",
+                        "#b10000",
 
                     borderWidth: 1,
                     borderRadius: 24,
@@ -1624,7 +1624,7 @@ function atualizarGraficosBateriasPorEstadoCidade(
     };
 
     linhas.forEach(item => {
-        if (item.estado === "BAHIA") {
+        if (item.estado === "BA") {
             const mapa = {
                 "SALVADOR": "Salvador",
                 "CAMACARI": "Camaçari",
@@ -1639,7 +1639,7 @@ function atualizarGraficosBateriasPorEstadoCidade(
             ] += item.quantidade;
         }
 
-        if (item.estado === "GOIAS") {
+        if (item.estado === "GO") {
             goias[
                 item.cidade === "GOIANIA"
                     ? "Goiânia"
@@ -1648,7 +1648,7 @@ function atualizarGraficosBateriasPorEstadoCidade(
         }
 
         if (
-            item.estado === "SAO PAULO"
+            item.estado === "SP"
         ) {
             saoPaulo[
                 item.cidade === "GUARULHOS"
@@ -1661,19 +1661,19 @@ function atualizarGraficosBateriasPorEstadoCidade(
     criarGraficoOpcional(
         "graficoBateriasCidadesBahia",
         bahia,
-        "#f35810"
+        "#e49b9b"
     );
 
     criarGraficoOpcional(
         "graficoBateriasCidadesGoias",
         goias,
-        "#c5b916"
+        "#c71f1f"
     );
 
     criarGraficoOpcional(
         "graficoBateriasCidadesSaoPaulo",
         saoPaulo,
-        "#ef233c"
+        "#c92828"
     );
 }
 
@@ -1740,7 +1740,7 @@ function atualizarTop10SitesBahia(contexto) {
     contexto.linhasAtual.forEach(
         item => {
             if (
-                item.estado !== "BAHIA" ||
+                item.estado !== "BA" ||
                 !ehBateria(item) ||
                 !item.site
             ) {
@@ -1782,13 +1782,13 @@ function atualizarTop10SitesBahia(contexto) {
                         ),
 
                     backgroundColor:
-                        "#f35810",
+                        "#b50000",
 
                     hoverBackgroundColor:
                         "#d1d5db",
 
                     borderColor:
-                        "#f35810",
+                        "#b30000",
 
                     borderWidth: 1,
 
@@ -1817,7 +1817,7 @@ function atualizarBlocoCabos(contexto) {
         linhas =>
             linhas.filter(
                 item =>
-                    item.estado === "SAO PAULO" &&
+                    item.estado === "SP" &&
                     item.cidade === "GUARULHOS" &&
                     item.tipo.includes("CABO")
             );
@@ -1939,7 +1939,7 @@ function atualizarGraficoCabosBateriasGuarulhos(
 
     linhas.forEach(item => {
         if (
-            item.estado !== "SAO PAULO" ||
+            item.estado !== "SP" ||
             item.cidade !== "GUARULHOS"
         ) {
             return;
@@ -1974,16 +1974,16 @@ function atualizarGraficoCabosBateriasGuarulhos(
                     ],
 
                     backgroundColor: [
-                        "#8b5cf6",
-                        "#f35810"
+                        "#b20000",
+                        "#e62323"
                     ],
 
                     hoverBackgroundColor:
                         "#d1d5db",
 
                     borderColor: [
-                        "#a879ff",
-                        "#fb7a3c"
+                        "#b20000",
+                        "#b30000"
                     ],
 
                     borderWidth: 1,
@@ -2010,7 +2010,7 @@ function atualizarTop5BairrosCabosGuarulhos(
 
     linhas.forEach(item => {
         if (
-            item.estado !== "SAO PAULO" ||
+            item.estado !== "SP" ||
             item.cidade !== "GUARULHOS" ||
             !item.tipo.includes("CABO") ||
             !item.bairro
@@ -2052,13 +2052,13 @@ function atualizarTop5BairrosCabosGuarulhos(
                         ),
 
                     backgroundColor:
-                        "#8b5cf6",
+                        "#b20000",
 
                     hoverBackgroundColor:
                         "#d1d5db",
 
                     borderColor:
-                        "#a879ff",
+                        "#b30000",
 
                     borderWidth: 1,
                     hoverBorderColor: "#ffffff",
@@ -2140,9 +2140,9 @@ function atualizarOcorrenciasEstados(
 
             data: {
                 labels: [
-                    "Bahia",
-                    "Goiás",
-                    "São Paulo"
+                    "BA",
+                    "GO",
+                    "SP"
                 ],
 
                 datasets: [{
@@ -2193,7 +2193,7 @@ function atualizarResumoFinanceiro(
         );
 
     atualizarFinanceiroEstadoProcessado(
-        "BAHIA",
+        "BA",
         "valorBahia",
         "valorBahiaVariacao",
         "valorBahiaAnterior",
@@ -2202,7 +2202,7 @@ function atualizarResumoFinanceiro(
     );
 
     atualizarFinanceiroEstadoProcessado(
-        "GOIAS",
+        "GO",
         "valorGoias",
         "valorGoiasVariacao",
         "valorGoiasAnterior",
@@ -2211,7 +2211,7 @@ function atualizarResumoFinanceiro(
     );
 
     atualizarFinanceiroEstadoProcessado(
-        "SAO PAULO",
+        "SP",
         "valorSaoPaulo",
         "valorSaoPauloVariacao",
         "valorSaoPauloAnterior",
@@ -2889,3 +2889,40 @@ function configurarAnimacoesScroll() {
             );
         });
 }
+
+
+/* =========================================================
+   TODAS AS BARRAS VERMELHAS
+========================================================= */
+
+const pluginBarrasVermelhas = {
+    id: "pluginBarrasVermelhas",
+
+    beforeUpdate(chart) {
+        if (
+            chart.config.type !== "bar"
+        ) {
+            return;
+        }
+
+        chart.data.datasets.forEach(
+            dataset => {
+                dataset.backgroundColor =
+                    "#ef233c";
+
+                dataset.borderColor =
+                    "#b91c1c";
+
+                dataset.hoverBackgroundColor =
+                    "#ff4d5f";
+
+                dataset.hoverBorderColor =
+                    "#ffffff";
+            }
+        );
+    }
+};
+
+Chart.register(
+    pluginBarrasVermelhas
+);
