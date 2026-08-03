@@ -899,11 +899,43 @@ function obterCampoDireto(
    PERÍODOS
 ========================================================= */
 
+
+
+function obterReferenciaPeriodo() {
+    const referencia =
+        new Date(dataReferencia);
+
+    if (periodoSelecionado !== "mes") {
+        return referencia;
+    }
+
+    const hoje = new Date();
+
+    const referenciaEstaNoMesAtual =
+        referencia.getFullYear() ===
+            hoje.getFullYear() &&
+        referencia.getMonth() ===
+            hoje.getMonth();
+
+    if (referenciaEstaNoMesAtual) {
+        return new Date(
+            referencia.getFullYear(),
+            referencia.getMonth() - 1,
+            1
+        );
+    }
+
+    return referencia;
+}
+
 function criarContextoPeriodo() {
+    const referenciaPeriodo =
+        obterReferenciaPeriodo();
+
     const periodoAtual =
         obterIntervaloAtual(
             periodoSelecionado,
-            dataReferencia
+            referenciaPeriodo
         );
 
     const periodoAnterior =
@@ -913,6 +945,9 @@ function criarContextoPeriodo() {
         );
 
     return {
+        referencia:
+            referenciaPeriodo,
+
         periodoAtual,
         periodoAnterior,
 
@@ -1346,6 +1381,9 @@ function atualizarGraficoPeriodoBaterias(
                 ehBateria(item)
         );
 
+    const referenciaPeriodo =
+        obterReferenciaPeriodo();
+
     let labels = [];
     let valores = [];
 
@@ -1354,7 +1392,7 @@ function atualizarGraficoPeriodoBaterias(
         valores = new Array(12).fill(0);
 
         const ano =
-            dataReferencia.getFullYear();
+            referenciaPeriodo.getFullYear();
 
         linhas.forEach(item => {
             if (
@@ -1373,11 +1411,14 @@ function atualizarGraficoPeriodoBaterias(
         const agrupado =
             agruparPorSemanasDoMesProcessada(
                 linhas,
-                dataReferencia
+                referenciaPeriodo
             );
 
-        labels = agrupado.labels;
-        valores = agrupado.valores;
+        labels =
+            agrupado.labels;
+
+        valores =
+            agrupado.valores;
 
     } else {
         labels = [
@@ -1395,7 +1436,7 @@ function atualizarGraficoPeriodoBaterias(
 
         const semana =
             obterSemanaDaData(
-                dataReferencia
+                referenciaPeriodo
             );
 
         filtrarProcessadaPorIntervalo(
@@ -1424,15 +1465,19 @@ function atualizarGraficoPeriodoBaterias(
                 datasets: [{
                     data: valores,
 
-                    backgroundColor: cor,
-                    hoverBackgroundColor:
-                        "#b3a700",
+                    backgroundColor:
+                        "#ef233c",
 
-                    borderColor: cor,
+                    hoverBackgroundColor:
+                        "#ff4d5f",
+
+                    borderColor:
+                        "#b91c1c",
+
                     borderWidth: 1,
 
                     hoverBorderColor:
-                        "#dabfbf",
+                        "#ffffff",
 
                     hoverBorderWidth: 2,
 
@@ -2597,18 +2642,13 @@ function converterData(valor) {
 
     if (
         valor instanceof Date &&
-        !Number.isNaN(
-            valor.getTime()
-        )
+        !Number.isNaN(valor.getTime())
     ) {
         return new Date(valor);
     }
 
     if (typeof valor === "number") {
-        const dataExcel =
-            XLSX.SSF.parse_date_code(
-                valor
-            );
+        const dataExcel = XLSX.SSF.parse_date_code(valor);
 
         if (dataExcel) {
             return new Date(
@@ -2617,35 +2657,31 @@ function converterData(valor) {
                 dataExcel.d,
                 dataExcel.H || 0,
                 dataExcel.M || 0,
-                Math.floor(
-                    dataExcel.S || 0
-                )
+                Math.floor(dataExcel.S || 0)
             );
         }
     }
 
-    const texto =
-        limparTexto(valor);
+    const texto = limparTexto(valor);
 
-    const brasileira =
-        texto.match(
-            /^(\d{1,2})\/(\d{1,2})\/(\d{4})/
-        );
+    const partes = texto.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/
+    );
 
-    if (brasileira) {
+    if (partes) {
         return new Date(
-            Number(brasileira[3]),
-            Number(brasileira[2]) - 1,
-            Number(brasileira[1])
+            Number(partes[3]),
+            Number(partes[2]) - 1,
+            Number(partes[1]),
+            Number(partes[4] || 0),
+            Number(partes[5] || 0),
+            Number(partes[6] || 0)
         );
     }
 
-    const iso =
-        new Date(texto);
+    const iso = new Date(texto);
 
-    return Number.isNaN(
-        iso.getTime()
-    )
+    return Number.isNaN(iso.getTime())
         ? null
         : iso;
 }
